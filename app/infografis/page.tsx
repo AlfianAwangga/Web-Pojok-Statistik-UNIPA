@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { infografisData } from "@/data/dummies";
+import { infografisData, InfografisModel } from "@/data/dummies";
 import {
   Search,
   Calendar,
@@ -11,13 +11,20 @@ import {
   Download,
   Eye,
   Filter,
+  X,
+  MapPin,
+  Info,
 } from "lucide-react";
+import { AnimatePresence, motion } from "framer-motion";
 
 const ITEMS_PER_PAGE = 6; // Menentukan batas infografis per halaman
 
 export default function InfografisPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
+  const [selectedItem, setSelectedItem] = useState<InfografisModel | null>(
+    null,
+  );
 
   // 1. LOGIKA PENCARIAN (Filter)
   // Menyaring data berdasarkan kata kunci pencarian (judul)
@@ -35,6 +42,10 @@ export default function InfografisPage() {
   const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
   const endIndex = startIndex + ITEMS_PER_PAGE;
   const currentItems = filteredData.slice(startIndex, endIndex);
+
+  //MODAL
+  const openModal = (item: InfografisModel) => setSelectedItem(item);
+  const closeModal = () => setSelectedItem(null);
 
   return (
     <div className="min-h-screen bg-gray-50 pb-20">
@@ -131,10 +142,13 @@ export default function InfografisPage() {
 
                     {/* Tombol Aksi */}
                     <div className="flex gap-2 mt-auto border-t border-gray-100 pt-4">
-                      <button className="flex-1 bg-purple-50 text-purple-700 font-semibold py-2 rounded-lg flex items-center justify-center hover:bg-purple-100 transition">
+                      <button
+                        onClick={() => openModal(item)}
+                        className="flex-1 cursor-pointer bg-purple-50 text-purple-700 font-semibold py-2 rounded-lg flex items-center justify-center hover:bg-purple-100 transition"
+                      >
                         <Eye className="w-4 h-4 mr-1" /> Lihat
                       </button>
-                      <button className="flex-1 bg-yellow-500 text-purple-900 font-bold py-2 rounded-lg flex items-center justify-center hover:bg-yellow-400 transition shadow-sm">
+                      <button className="flex-1 cursor-pointer bg-yellow-500 text-gray-900 font-bold py-2 rounded-lg flex items-center justify-center hover:bg-yellow-400 transition shadow-sm">
                         <Download className="w-4 h-4 mr-1" /> Unduh
                       </button>
                     </div>
@@ -178,6 +192,108 @@ export default function InfografisPage() {
                 </button>
               </div>
             )}
+
+            <AnimatePresence>
+              {selectedItem && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-0 md:p-6">
+                  {/* Latar Belakang Gelap */}
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    className="absolute inset-0 bg-black/85 backdrop-blur-sm"
+                    onClick={closeModal} // Klik di luar area untuk menutup
+                  ></motion.div>
+
+                  {/* Kotak Modal Utama */}
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.9, y: 20 }}
+                    animate={{ opacity: 1, scale: 1, y: 0 }}
+                    exit={{ opacity: 0, scale: 0.9, y: 20 }}
+                    className="relative w-full h-full md:h-auto md:max-h-[90vh] md:max-w-6xl bg-white md:rounded-2xl shadow-2xl flex flex-col md:flex-row overflow-hidden z-10"
+                  >
+                    {/* Tombol Tutup (Silang) */}
+                    <button
+                      onClick={closeModal}
+                      className="absolute top-4 right-4 z-20 bg-black/50 hover:bg-red-600 text-white p-2 rounded-full backdrop-blur transition-colors"
+                    >
+                      <X className="w-5 h-5" />
+                    </button>
+
+                    {/* AREA KIRI: Penampil Gambar Penuh */}
+                    <div className="w-full h-[40vh] md:h-auto md:w-[60%] bg-gray-100 flex items-center justify-center relative p-2 md:p-6 overflow-hidden">
+                      <img
+                        src={selectedItem.image}
+                        alt={selectedItem.title}
+                        className="w-full h-full object-contain md:object-contain drop-shadow-xl"
+                      />
+                    </div>
+
+                    {/* AREA KANAN: Detail Data berdasarkan ID */}
+                    <div className="w-full h-[60vh] md:h-auto md:w-[40%] bg-white flex flex-col border-l border-gray-100">
+                      {/* Header Info */}
+                      <div className="p-6 md:p-8 bg-gray-50/50 border-b border-gray-100">
+                        <div className="flex justify-between items-start mb-3">
+                          <span className="bg-yellow-100 text-yellow-800 text-xs font-extrabold px-3 py-1 rounded uppercase tracking-wider">
+                            {selectedItem.category}
+                          </span>
+                          <span className="text-gray-400 text-sm font-mono">
+                            {selectedItem.id}
+                          </span>
+                        </div>
+                        <h2 className="text-2xl md:text-3xl font-extrabold text-blue-950 leading-tight">
+                          {selectedItem.title}
+                        </h2>
+                      </div>
+
+                      {/* Metadata & Deskripsi (Bisa di-scroll jika kepanjangan) */}
+                      <div className="p-6 md:p-8 overflow-y-auto grow">
+                        {/* Kotak Metadata */}
+                        <div className="bg-blue-50/50 border border-blue-100 rounded-xl p-4 mb-8 space-y-3">
+                          <div className="flex items-center text-sm text-gray-700">
+                            <User className="w-4 h-4 mr-3 text-blue-600" />
+                            <span className="w-32 font-semibold">
+                              Disusun oleh:
+                            </span>{" "}
+                            {selectedItem.author}
+                          </div>
+                          <div className="flex items-center text-sm text-gray-700">
+                            <Calendar className="w-4 h-4 mr-3 text-blue-600" />
+                            <span className="w-32 font-semibold">
+                              Diunggah pada:
+                            </span>{" "}
+                            {selectedItem.date}
+                          </div>
+                          <div className="flex items-center text-sm text-gray-700">
+                            <MapPin className="w-4 h-4 mr-3 text-blue-600" />
+                            <span className="w-32 font-semibold">
+                              Cakupan Data:
+                            </span>{" "}
+                            {selectedItem.area}
+                          </div>
+                        </div>
+
+                        <h3 className="font-bold text-lg text-gray-900 mb-3 flex items-center">
+                          <Info className="w-5 h-5 mr-2 text-yellow-500" />{" "}
+                          Narasi Data
+                        </h3>
+                        <p className="text-gray-600 leading-relaxed text-justify">
+                          {selectedItem.description}
+                        </p>
+                      </div>
+
+                      {/* Footer Action (Tombol Unduh) */}
+                      <div className="p-6 border-t border-gray-100 bg-white">
+                        <button className="w-full bg-purple-900 hover:bg-purple-800 text-white font-bold py-3.5 px-4 rounded-xl flex items-center justify-center transition-colors shadow-lg">
+                          <Download className="w-5 h-5 mr-2 text-yellow-400" />{" "}
+                          Unduh Infografis HD
+                        </button>
+                      </div>
+                    </div>
+                  </motion.div>
+                </div>
+              )}
+            </AnimatePresence>
           </>
         )}
       </div>

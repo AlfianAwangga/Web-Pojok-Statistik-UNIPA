@@ -7,6 +7,8 @@ export interface InfografisModel {
   author: string;
   image: string;
   category: string;
+  description: string;
+  area: String;
 }
 
 export interface ArtikelModel {
@@ -27,6 +29,8 @@ export const infografisData: InfografisModel[] = [
     image:
       "https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&q=80&w=800",
     category: "Sosial",
+    description: LOREM,
+    area: "Papua Barat Daya",
   },
   {
     id: 2,
@@ -36,6 +40,8 @@ export const infografisData: InfografisModel[] = [
     image:
       "https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&q=80&w=800",
     category: "Sosial",
+    description: LOREM,
+    area: "Papua Barat Daya",
   },
   {
     id: 3,
@@ -45,6 +51,8 @@ export const infografisData: InfografisModel[] = [
     image:
       "https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&q=80&w=800",
     category: "Sosial",
+    description: LOREM,
+    area: "Papua Barat Daya",
   },
   {
     id: 4,
@@ -54,6 +62,8 @@ export const infografisData: InfografisModel[] = [
     image:
       "https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&q=80&w=800",
     category: "Sosial",
+    description: LOREM,
+    area: "Papua Barat Daya",
   },
   {
     id: 5,
@@ -63,6 +73,8 @@ export const infografisData: InfografisModel[] = [
     image:
       "https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&q=80&w=800",
     category: "Sosial",
+    description: LOREM,
+    area: "Papua Barat Daya",
   },
   {
     id: 6,
@@ -72,6 +84,8 @@ export const infografisData: InfografisModel[] = [
     image:
       "https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&q=80&w=800",
     category: "Sosial",
+    description: LOREM,
+    area: "Papua Barat Daya",
   },
   {
     id: 7,
@@ -81,6 +95,8 @@ export const infografisData: InfografisModel[] = [
     image:
       "https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&q=80&w=800",
     category: "Sosial",
+    description: LOREM,
+    area: "Papua Barat Daya",
   },
   {
     id: 8,
@@ -90,6 +106,8 @@ export const infografisData: InfografisModel[] = [
     image:
       "https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&q=80&w=800",
     category: "Sosial",
+    description: LOREM,
+    area: "Papua Barat Daya",
   },
 ];
 
