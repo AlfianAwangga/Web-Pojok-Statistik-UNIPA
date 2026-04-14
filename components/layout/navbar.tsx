@@ -25,14 +25,11 @@ export default function Navbar() {
 
           {/* Desktop Menu */}
           <div className="hidden md:flex space-x-8">
-            <a
-              href="#beranda"
-              className="hover:text-yellow-400 transition-colors"
-            >
+            <a href="/" className="hover:text-yellow-400 transition-colors">
               Beranda
             </a>
             <a
-              href="#infografis"
+              href="/infografis"
               className="hover:text-yellow-400 transition-colors"
             >
               Infografis

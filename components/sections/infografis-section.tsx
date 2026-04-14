@@ -3,6 +3,7 @@ import ScrollAnimation from "../ui/scroll-anim";
 import { infografisData } from "@/data/dummies";
 
 export default function InfografisSection() {
+  const infografisTerbaru = infografisData.slice(0, 3);
   return (
     <section id="infografis" className="py-20 bg-white">
       <ScrollAnimation>
@@ -20,7 +21,7 @@ export default function InfografisSection() {
 
           {/* Grid Infografis - Ini yang nanti akan di-looping menggunakan data Google Sheets */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {infografisData.map((item) => (
+            {infografisTerbaru.map((item) => (
               <div
                 key={item.id}
                 className="bg-white rounded-xl shadow-lg overflow-hidden group hover:shadow-xl transition-all duration-300 border border-gray-100"
@@ -42,7 +43,7 @@ export default function InfografisSection() {
                     {item.title}
                   </h4>
                   <p className="text-sm text-gray-500 flex items-center">
-                    <Users className="w-4 h-4 mr-1" /> Karya:{" "}
+                    <Users className="w-4 h-4 mr-1" /> Oleh:{" "}
                     <span className="font-semibold text-purple-700 ml-1">
                       {item.author}
                     </span>
