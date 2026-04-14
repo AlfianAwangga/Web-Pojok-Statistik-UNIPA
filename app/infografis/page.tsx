@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { infografisData, InfografisModel } from "@/data/dummies";
 import { imageDownloader } from "@/components/utils/download";
+import { getTotalPages, getPaginatedData } from "@/components/utils/pagination";
 import {
   Search,
   Calendar,
@@ -32,19 +33,20 @@ export default function InfografisPage() {
   const filteredData = infografisData.filter((item) =>
     item.title.toLowerCase().includes(searchQuery.toLowerCase()),
   );
-
   // Jika pengguna mengetik pencarian baru, kembalikan ke halaman 1
   useEffect(() => {
     setCurrentPage(1);
   }, [searchQuery]);
 
   // 2. LOGIKA PAGINATION (Pembagian Halaman)
-  const totalPages = Math.ceil(filteredData.length / ITEMS_PER_PAGE);
-  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
-  const endIndex = startIndex + ITEMS_PER_PAGE;
-  const currentItems = filteredData.slice(startIndex, endIndex);
+  const totalPages = getTotalPages(filteredData.length, ITEMS_PER_PAGE);
+  const currentItems = getPaginatedData(
+    filteredData,
+    currentPage,
+    ITEMS_PER_PAGE,
+  );
 
-  //MODAL
+  // 3. MODAL
   const openModal = (item: InfografisModel) => setSelectedItem(item);
   const closeModal = () => setSelectedItem(null);
 
