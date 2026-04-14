@@ -4,12 +4,14 @@ import React, { useState, useEffect } from "react";
 import { infografisData, InfografisModel } from "@/data/dummies";
 import { imageDownloader } from "@/components/utils/download";
 import { getTotalPages, getPaginatedData } from "@/components/utils/pagination";
+import { filterData, getUniqueCategories } from "@/components/utils/search";
 import {
   Search,
   Calendar,
   User,
   ChevronLeft,
   ChevronRight,
+  ChevronDown,
   Download,
   Eye,
   Filter,
@@ -19,26 +21,28 @@ import {
 } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 
-const ITEMS_PER_PAGE = 6; // Menentukan batas infografis per halaman
+const ITEMS_PER_PAGE = 6;
 
 export default function InfografisPage() {
   const [searchQuery, setSearchQuery] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState("Semua Kategori");
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedItem, setSelectedItem] = useState<InfografisModel | null>(
     null,
   );
 
-  // 1. LOGIKA PENCARIAN (Filter)
-  // Menyaring data berdasarkan kata kunci pencarian (judul)
-  const filteredData = infografisData.filter((item) =>
-    item.title.toLowerCase().includes(searchQuery.toLowerCase()),
+  const categories = getUniqueCategories(infografisData);
+
+  const filteredData = filterData(
+    infografisData,
+    searchQuery,
+    selectedCategory,
   );
-  // Jika pengguna mengetik pencarian baru, kembalikan ke halaman 1
+
   useEffect(() => {
     setCurrentPage(1);
-  }, [searchQuery]);
+  }, [searchQuery, selectedCategory]);
 
-  // 2. LOGIKA PAGINATION (Pembagian Halaman)
   const totalPages = getTotalPages(filteredData.length, ITEMS_PER_PAGE);
   const currentItems = getPaginatedData(
     filteredData,
@@ -46,13 +50,12 @@ export default function InfografisPage() {
     ITEMS_PER_PAGE,
   );
 
-  // 3. MODAL
   const openModal = (item: InfografisModel) => setSelectedItem(item);
   const closeModal = () => setSelectedItem(null);
 
   return (
     <div className="min-h-screen bg-gray-50 pb-20">
-      {/* Bagian Header (Hero) Halaman Infografis */}
+      {/* Header Hero */}
       <div className="bg-purple-900 text-white py-16 px-4">
         <div className="max-w-7xl mx-auto text-center">
           <h1 className="text-4xl md:text-5xl font-bold mb-4">
@@ -68,6 +71,7 @@ export default function InfografisPage() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-8 relative z-10">
         {/* PANEL PENCARIAN & FILTER */}
         <div className="bg-white rounded-xl shadow-lg p-4 md:p-6 mb-10 border border-gray-100 flex flex-col md:flex-row gap-4 items-center justify-between">
+          {/* Input Pencarian */}
           <div className="relative w-full md:w-2/3">
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
               <Search className="h-5 w-5 text-gray-400" />
@@ -81,10 +85,27 @@ export default function InfografisPage() {
             />
           </div>
 
-          <div className="w-full md:w-1/3 flex gap-2">
-            <button className="flex-1 bg-gray-50 border border-gray-200 text-gray-700 py-3 px-4 rounded-lg flex items-center justify-center hover:bg-gray-100 transition">
-              <Filter className="w-5 h-5 mr-2" /> Kategori
-            </button>
+          {/* Dropdown Kategori */}
+          <div className="w-full md:w-1/3">
+            <div className="relative">
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <Filter className="h-5 w-5 text-gray-400" />
+              </div>
+              <select
+                value={selectedCategory}
+                onChange={(e) => setSelectedCategory(e.target.value)}
+                className="block w-full pl-10 pr-8 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors bg-gray-50 text-gray-900 appearance-none cursor-pointer"
+              >
+                {categories.map((cat) => (
+                  <option key={cat} value={cat}>
+                    {cat}
+                  </option>
+                ))}
+              </select>
+              <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                <ChevronDown className="h-5 w-5 text-gray-400" />
+              </div>
+            </div>
           </div>
         </div>
 
@@ -99,7 +120,10 @@ export default function InfografisPage() {
               Coba gunakan kata kunci lain untuk pencarian Anda.
             </p>
             <button
-              onClick={() => setSearchQuery("")}
+              onClick={() => {
+                setSearchQuery("");
+                setSelectedCategory("Semua");
+              }}
               className="mt-6 text-purple-600 font-semibold hover:underline"
             >
               Hapus Pencarian
@@ -176,7 +200,6 @@ export default function InfografisPage() {
                   <ChevronLeft className="w-5 h-5" />
                 </button>
 
-                {/* Looping nomor halaman */}
                 {[...Array(totalPages)].map((_, i) => (
                   <button
                     key={i + 1}
@@ -199,26 +222,27 @@ export default function InfografisPage() {
               </div>
             )}
 
+            {/* MODAL PREVIEW */}
             <AnimatePresence>
               {selectedItem && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-0 md:p-6">
-                  {/* Latar Belakang Gelap */}
+                  {/* Backdrop */}
                   <motion.div
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
                     className="absolute inset-0 bg-black/85 backdrop-blur-sm"
-                    onClick={closeModal} // Klik di luar area untuk menutup
-                  ></motion.div>
+                    onClick={closeModal}
+                  />
 
-                  {/* Kotak Modal Utama */}
+                  {/* Kotak Modal */}
                   <motion.div
                     initial={{ opacity: 0, scale: 0.9, y: 20 }}
                     animate={{ opacity: 1, scale: 1, y: 0 }}
                     exit={{ opacity: 0, scale: 0.9, y: 20 }}
                     className="relative w-full h-full md:h-auto md:max-h-[90vh] md:max-w-6xl bg-white md:rounded-2xl shadow-2xl flex flex-col md:flex-row overflow-hidden z-10"
                   >
-                    {/* Tombol Tutup (Silang) */}
+                    {/* Tombol Tutup */}
                     <button
                       onClick={closeModal}
                       className="absolute top-4 right-4 z-20 bg-black/50 hover:bg-red-600 text-white p-2 rounded-full backdrop-blur transition-colors"
@@ -226,16 +250,16 @@ export default function InfografisPage() {
                       <X className="w-5 h-5" />
                     </button>
 
-                    {/* AREA KIRI: Penampil Gambar Penuh */}
+                    {/* KIRI: Gambar */}
                     <div className="w-full h-[40vh] md:h-auto md:w-[60%] bg-gray-100 flex items-center justify-center relative p-2 md:p-6 overflow-hidden">
                       <img
                         src={selectedItem.image}
                         alt={selectedItem.title}
-                        className="w-full h-full object-contain md:object-contain drop-shadow-xl"
+                        className="w-full h-full object-contain drop-shadow-xl"
                       />
                     </div>
 
-                    {/* AREA KANAN: Detail Data berdasarkan ID */}
+                    {/* KANAN: Detail */}
                     <div className="w-full h-[60vh] md:h-auto md:w-[40%] bg-white flex flex-col border-l border-gray-100">
                       {/* Header Info */}
                       <div className="p-6 md:p-8 bg-gray-50/50 border-b border-gray-100">
@@ -252,29 +276,28 @@ export default function InfografisPage() {
                         </h2>
                       </div>
 
-                      {/* Metadata & Deskripsi (Bisa di-scroll jika kepanjangan) */}
+                      {/* Metadata & Deskripsi */}
                       <div className="p-6 md:p-8 overflow-y-auto grow">
-                        {/* Kotak Metadata */}
                         <div className="bg-blue-50/50 border border-blue-100 rounded-xl p-4 mb-8 space-y-3">
                           <div className="flex items-center text-sm text-gray-700">
                             <User className="w-4 h-4 mr-3 text-blue-600" />
                             <span className="w-32 font-semibold">
                               Disusun oleh:
-                            </span>{" "}
+                            </span>
                             {selectedItem.author}
                           </div>
                           <div className="flex items-center text-sm text-gray-700">
                             <Calendar className="w-4 h-4 mr-3 text-blue-600" />
                             <span className="w-32 font-semibold">
                               Diunggah pada:
-                            </span>{" "}
+                            </span>
                             {selectedItem.date}
                           </div>
                           <div className="flex items-center text-sm text-gray-700">
                             <MapPin className="w-4 h-4 mr-3 text-blue-600" />
                             <span className="w-32 font-semibold">
                               Cakupan Data:
-                            </span>{" "}
+                            </span>
                             {selectedItem.area}
                           </div>
                         </div>
@@ -288,7 +311,7 @@ export default function InfografisPage() {
                         </p>
                       </div>
 
-                      {/* Footer Action (Tombol Unduh) */}
+                      {/* Footer Tombol Unduh */}
                       <div className="p-6 border-t border-gray-100 bg-white">
                         <button
                           onClick={() =>
@@ -299,7 +322,7 @@ export default function InfografisPage() {
                           }
                           className="w-full bg-purple-900 hover:bg-purple-800 text-white font-bold py-3.5 px-4 rounded-xl flex items-center justify-center transition-colors shadow-lg"
                         >
-                          <Download className="w-5 h-5 mr-2 text-yellow-400" />{" "}
+                          <Download className="w-5 h-5 mr-2 text-yellow-400" />
                           Unduh Infografis HD
                         </button>
                       </div>
