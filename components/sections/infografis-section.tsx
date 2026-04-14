@@ -5,7 +5,7 @@ import { infografisData } from "@/data/dummies";
 export default function InfografisSection() {
   const infografisTerbaru = infografisData.slice(0, 3);
   return (
-    <section id="infografis" className="py-20 bg-white">
+    <section id="infografis" className="py-20 bg-gray-50">
       <ScrollAnimation>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">

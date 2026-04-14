@@ -20,6 +20,7 @@ import {
   Info,
 } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
+import ScrollAnimation from "@/components/ui/scroll-anim";
 
 const ITEMS_PER_PAGE = 6;
 
@@ -56,12 +57,12 @@ export default function InfografisPage() {
   return (
     <div className="min-h-screen bg-gray-50 pb-20">
       {/* Header Hero */}
-      <div className="bg-purple-900 text-white py-16 px-4">
+      <div className="bg-white border-b-2 border-gray-100 text-white py-16 px-4">
         <div className="max-w-7xl mx-auto text-center">
-          <h1 className="text-4xl md:text-5xl font-bold mb-4">
-            Katalog <span className="text-yellow-400">Infografis</span>
+          <h1 className="text-black/80 text-4xl md:text-5xl font-bold mb-4">
+            Koleksi <span className="text-purple-800">Infografis</span>
           </h1>
-          <p className="text-purple-100 max-w-2xl mx-auto text-lg">
+          <p className="text-gray-500 max-w-2xl mx-auto text-lg">
             Jelajahi kumpulan visualisasi data statistik yang dirancang untuk
             memudahkan pemahaman informasi ekonomi dan sosial Papua Barat.
           </p>
@@ -70,7 +71,7 @@ export default function InfografisPage() {
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-8 relative z-10">
         {/* PANEL PENCARIAN & FILTER */}
-        <div className="bg-white rounded-xl shadow-lg p-4 md:p-6 mb-10 border border-gray-100 flex flex-col md:flex-row gap-4 items-center justify-between">
+        <div className="bg-white rounded-xl p-4 md:p-6 mb-10 border border-gray-300 flex flex-col md:flex-row gap-4 items-center justify-between">
           {/* Input Pencarian */}
           <div className="relative w-full md:w-2/3">
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -78,7 +79,7 @@ export default function InfografisPage() {
             </div>
             <input
               type="text"
-              className="block w-full pl-10 pr-3 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors bg-gray-50 text-gray-900"
+              className="block w-full pl-10 pr-3 py-3 border border-gray-200 rounded-lg focus:ring-2 transition-colors bg-gray-50 text-gray-900"
               placeholder="Cari judul infografis (contoh: Inflasi, Pertanian)..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
@@ -94,7 +95,7 @@ export default function InfografisPage() {
               <select
                 value={selectedCategory}
                 onChange={(e) => setSelectedCategory(e.target.value)}
-                className="block w-full pl-10 pr-8 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors bg-gray-50 text-gray-900 appearance-none cursor-pointer"
+                className="block w-full pl-10 pr-8 py-3 border border-gray-200 rounded-lg focus:ring-2 transition-colors bg-gray-50 text-gray-900 appearance-none cursor-pointer"
               >
                 {categories.map((cat) => (
                   <option key={cat} value={cat}>
@@ -132,60 +133,64 @@ export default function InfografisPage() {
         ) : (
           <>
             {/* GRID DAFTAR INFOGRAFIS */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
-              {currentItems.map((item) => (
-                <div
-                  key={item.id}
-                  className="bg-white rounded-xl shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100 overflow-hidden group flex flex-col h-full"
-                >
-                  {/* Thumbnail Gambar */}
-                  <div className="relative h-60 overflow-hidden bg-gray-200">
-                    <img
-                      src={item.image}
-                      alt={item.title}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                    />
-                    <div className="absolute top-3 right-3 bg-white/90 backdrop-blur text-purple-900 text-xs font-bold px-3 py-1 rounded-full shadow-sm">
-                      {item.category}
-                    </div>
-                  </div>
-
-                  {/* Konten Teks */}
-                  <div className="p-6 flex flex-col grow">
-                    <h3 className="text-xl font-bold text-gray-900 mb-3 line-clamp-2 group-hover:text-purple-700 transition-colors">
-                      {item.title}
-                    </h3>
-
-                    <div className="space-y-2 mt-auto mb-6">
-                      <div className="flex items-center text-sm text-gray-500">
-                        <User className="w-4 h-4 mr-2 text-yellow-500" />
-                        Oleh: {item.author}
-                      </div>
-                      <div className="flex items-center text-sm text-gray-500">
-                        <Calendar className="w-4 h-4 mr-2 text-yellow-500" />
-                        Diunggah: {item.date}
+            <ScrollAnimation>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
+                {currentItems.map((item) => (
+                  <div
+                    key={item.id}
+                    className="bg-white rounded-xl shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100 overflow-hidden group flex flex-col h-full"
+                  >
+                    {/* Thumbnail Gambar */}
+                    <div className="relative h-60 overflow-hidden bg-gray-200">
+                      <img
+                        src={item.image}
+                        alt={item.title}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                      />
+                      <div className="absolute top-3 right-3 bg-yellow-400/30 backdrop-blur text-yellow-800 text-xs px-3 py-1 rounded-full shadow-sm">
+                        {item.category}
                       </div>
                     </div>
 
-                    {/* Tombol Aksi */}
-                    <div className="flex gap-2 mt-auto border-t border-gray-100 pt-4">
-                      <button
-                        onClick={() => openModal(item)}
-                        className="flex-1 cursor-pointer bg-purple-50 text-purple-700 font-semibold py-2 rounded-lg flex items-center justify-center hover:bg-purple-100 transition"
-                      >
-                        <Eye className="w-4 h-4 mr-1" /> Lihat
-                      </button>
-                      <button
-                        onClick={() => imageDownloader(item.image, item.title)}
-                        className="flex-1 cursor-pointer bg-yellow-500 text-gray-900 font-bold py-2 rounded-lg flex items-center justify-center hover:bg-yellow-400 transition shadow-sm"
-                      >
-                        <Download className="w-4 h-4 mr-1" /> Unduh
-                      </button>
+                    {/* Konten Teks */}
+                    <div className="p-6 flex flex-col grow">
+                      <h3 className="text-xl font-bold text-gray-900 mb-3 line-clamp-2 group-hover:text-purple-800 transition-colors">
+                        {item.title}
+                      </h3>
+
+                      <div className="space-y-2 mt-auto mb-6">
+                        <div className="flex items-center text-sm text-gray-500">
+                          <User className="w-4 h-4 mr-2 text-yellow-500" />
+                          {item.author}
+                        </div>
+                        <div className="flex items-center text-sm text-gray-500">
+                          <Calendar className="w-4 h-4 mr-2 text-yellow-500" />
+                          {item.date}
+                        </div>
+                      </div>
+
+                      {/* Tombol Aksi */}
+                      <div className="flex gap-2 mt-auto border-t border-gray-100 pt-4">
+                        <button
+                          onClick={() => openModal(item)}
+                          className="flex-1 cursor-pointer bg-white text-gray-800 font-semibold py-2 rounded-lg border border-gray-800 flex items-center justify-center hover:bg-gray-100 transition"
+                        >
+                          <Eye className="w-4 h-4 mr-1" /> Lihat
+                        </button>
+                        <button
+                          onClick={() =>
+                            imageDownloader(item.image, item.title)
+                          }
+                          className="flex-1 cursor-pointer bg-yellow-500 text-gray-900 font-bold py-2 rounded-lg flex items-center justify-center hover:bg-yellow-400 transition shadow-sm"
+                        >
+                          <Download className="w-4 h-4 mr-1" /> Unduh
+                        </button>
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            </ScrollAnimation>
 
             {/* KOMPONEN PAGINATION */}
             {totalPages > 1 && (

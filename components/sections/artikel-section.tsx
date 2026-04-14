@@ -3,8 +3,9 @@ import ScrollAnimation from "../ui/scroll-anim";
 import { artikelData } from "@/data/dummies";
 
 export default function ArtikelSection() {
+  const artikelTerbaru = artikelData.slice(0, 3);
   return (
-    <section id="artikel" className="py-20 bg-gray-50">
+    <section id="artikel" className="py-20 bg-white">
       <ScrollAnimation>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
@@ -19,10 +20,10 @@ export default function ArtikelSection() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {artikelData.map((artikel) => (
+            {artikelTerbaru.map((artikel) => (
               <div
                 key={artikel.id}
-                className="bg-white p-8 rounded-xl shadow-md border-t-4 border-purple-600 hover:-translate-y-1 transition-transform duration-300"
+                className="bg-white p-8 rounded-xl shadow-md border-t-4 border-purple-900 hover:-translate-y-1 transition-transform duration-300"
               >
                 <p className="text-xs font-semibold text-yellow-600 mb-3">
                   {artikel.date}
@@ -39,7 +40,7 @@ export default function ArtikelSection() {
                   </span>
                   <a
                     href="#"
-                    className="bg-purple-600 text-white p-2 rounded-lg hover:text-yellow-300 hover:bg-purple-700 text-sm font-bold flex items-center"
+                    className="bg-white text-gray-600 p-2 rounded-lg border border-gray-600 hover:text-yellow-300 hover:bg-purple-900 text-sm font-bold flex items-center"
                   >
                     Baca <ArrowRight className="w-4 h-4 ml-1" />
                   </a>
