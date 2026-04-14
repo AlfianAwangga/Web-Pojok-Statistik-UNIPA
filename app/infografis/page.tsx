@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { infografisData, InfografisModel } from "@/data/dummies";
+import { imageDownloader } from "@/components/utils/download";
 import {
   Search,
   Calendar,
@@ -148,7 +149,10 @@ export default function InfografisPage() {
                       >
                         <Eye className="w-4 h-4 mr-1" /> Lihat
                       </button>
-                      <button className="flex-1 cursor-pointer bg-yellow-500 text-gray-900 font-bold py-2 rounded-lg flex items-center justify-center hover:bg-yellow-400 transition shadow-sm">
+                      <button
+                        onClick={() => imageDownloader(item.image, item.title)}
+                        className="flex-1 cursor-pointer bg-yellow-500 text-gray-900 font-bold py-2 rounded-lg flex items-center justify-center hover:bg-yellow-400 transition shadow-sm"
+                      >
                         <Download className="w-4 h-4 mr-1" /> Unduh
                       </button>
                     </div>
@@ -284,7 +288,15 @@ export default function InfografisPage() {
 
                       {/* Footer Action (Tombol Unduh) */}
                       <div className="p-6 border-t border-gray-100 bg-white">
-                        <button className="w-full bg-purple-900 hover:bg-purple-800 text-white font-bold py-3.5 px-4 rounded-xl flex items-center justify-center transition-colors shadow-lg">
+                        <button
+                          onClick={() =>
+                            imageDownloader(
+                              selectedItem.image,
+                              selectedItem.title,
+                            )
+                          }
+                          className="w-full bg-purple-900 hover:bg-purple-800 text-white font-bold py-3.5 px-4 rounded-xl flex items-center justify-center transition-colors shadow-lg"
+                        >
                           <Download className="w-5 h-5 mr-2 text-yellow-400" />{" "}
                           Unduh Infografis HD
                         </button>
