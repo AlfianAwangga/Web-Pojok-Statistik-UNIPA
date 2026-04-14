@@ -1,31 +1,8 @@
 import { BookOpen, ArrowRight } from "lucide-react";
 import ScrollAnimation from "../ui/scroll-anim";
-import { LOREM } from "../utils/strings";
+import { artikelData } from "@/data/dummies";
 
 export default function ArtikelSection() {
-  const artikelData = [
-    {
-      id: 1,
-      title: "Artikel 1",
-      excerpt: LOREM,
-      date: "1 Januari 2027",
-      author: "Author 1",
-    },
-    {
-      id: 2,
-      title: "Artikel 2",
-      excerpt: LOREM,
-      date: "1 Januari 2027",
-      author: "Author 2",
-    },
-    {
-      id: 3,
-      title: "Artikel 3",
-      excerpt: LOREM,
-      date: "1 Januari 2027",
-      author: "Author 3",
-    },
-  ];
   return (
     <section id="artikel" className="py-20 bg-gray-50">
       <ScrollAnimation>
