@@ -21,6 +21,7 @@ export interface ArtikelModel {
   content: string;
   image: string;
   readTime: string;
+  slug: string;
 }
 
 export const infografisData: InfografisModel[] = [
@@ -126,6 +127,7 @@ export const artikelData: ArtikelModel[] = [
     image:
       "https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&q=80&w=800",
     readTime: "2 Menit",
+    slug: "artikel-1",
   },
   {
     id: 2,
@@ -138,6 +140,7 @@ export const artikelData: ArtikelModel[] = [
     image:
       "https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&q=80&w=800",
     readTime: "2 Menit",
+    slug: "artikel-2",
   },
   {
     id: 3,
@@ -150,6 +153,7 @@ export const artikelData: ArtikelModel[] = [
     image:
       "https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&q=80&w=800",
     readTime: "2 Menit",
+    slug: "artikel-3",
   },
   {
     id: 4,
@@ -162,6 +166,7 @@ export const artikelData: ArtikelModel[] = [
     image:
       "https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&q=80&w=800",
     readTime: "2 Menit",
+    slug: "artikel-4",
   },
   {
     id: 5,
@@ -174,6 +179,7 @@ export const artikelData: ArtikelModel[] = [
     image:
       "https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&q=80&w=800",
     readTime: "2 Menit",
+    slug: "artikel-5",
   },
   {
     id: 6,
@@ -186,6 +192,7 @@ export const artikelData: ArtikelModel[] = [
     image:
       "https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&q=80&w=800",
     readTime: "2 Menit",
+    slug: "artikel-6",
   },
   {
     id: 7,
@@ -198,6 +205,7 @@ export const artikelData: ArtikelModel[] = [
     image:
       "https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&q=80&w=800",
     readTime: "2 Menit",
+    slug: "artikel-7",
   },
   {
     id: 8,
@@ -210,5 +218,6 @@ export const artikelData: ArtikelModel[] = [
     image:
       "https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&q=80&w=800",
     readTime: "2 Menit",
+    slug: "artikel-8",
   },
 ];

@@ -1,26 +1,21 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { artikelData, ArtikelModel } from "@/data/dummies";
+import ScrollAnimation from "@/components/ui/scroll-anim";
+import { getPaginatedData, getTotalPages } from "@/components/utils/pagination";
+import { filterData, getUniqueCategories } from "@/components/utils/search";
+import { artikelData } from "@/data/dummies";
 import {
-  Search,
   Calendar,
-  User,
   ChevronLeft,
   ChevronRight,
-  BookOpen,
-  Clock,
-  ArrowLeft,
-  Share2,
-  Bookmark,
-  BarChart3,
   ChevronRight as ChevronRightIcon,
+  Clock,
   Filter,
+  Search,
+  User,
 } from "lucide-react";
-import { filterData, getUniqueCategories } from "@/components/utils/search";
-import { getPaginatedData, getTotalPages } from "@/components/utils/pagination";
-import ScrollAnimation from "@/components/ui/scroll-anim";
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 
 const ITEMS_PER_PAGE = 4;
 
@@ -28,11 +23,6 @@ export default function ArtikelPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedCategory, setSelectedCategory] = useState("Semua Kategori");
-  const [activeArticleId, setActiveArticleId] = useState<number | null>(null);
-
-  const selectedArticle = artikelData.find(
-    (article) => article.id === activeArticleId,
-  );
 
   const categories = getUniqueCategories(artikelData);
   const filteredData = filterData(artikelData, searchQuery, selectedCategory);
@@ -48,116 +38,11 @@ export default function ArtikelPage() {
     ITEMS_PER_PAGE,
   );
 
-  const handleOpenArticle = (id: number) => {
-    setActiveArticleId(id);
-    window.scrollTo({ top: 0, behavior: "smooth" });
+  const router = useRouter();
+
+  const handleOpenArticle = (slug: string) => {
+    router.push(`/artikel/${slug}`);
   };
-
-  if (selectedArticle) {
-    return (
-      <div className="min-h-screen bg-gray-50 font-sans text-gray-800 pb-20">
-        {/* NAVBAR SIMPEL (Agar konsisten) */}
-        <nav className="bg-white border-b border-gray-200 sticky top-0 z-40">
-          <div className="max-w-4xl mx-auto px-4 h-16 flex items-center justify-between">
-            <button
-              onClick={() => setActiveArticleId(null)}
-              className="flex items-center text-gray-600 hover:text-purple-700 font-semibold transition-colors"
-            >
-              <ArrowLeft className="w-5 h-5 mr-2" /> Kembali ke Katalog
-            </button>
-            <div className="flex items-center space-x-2 text-sm text-gray-400">
-              <span>Artikel Magang Berdampak</span>{" "}
-              <ChevronRightIcon className="w-4 h-4" />{" "}
-              <span className="text-purple-600 font-medium truncate w-32">
-                {selectedArticle.category}
-              </span>
-            </div>
-          </div>
-        </nav>
-
-        {/* HEADER ARTIKEL */}
-        <div className="max-w-4xl mx-auto px-4 pt-12 pb-8">
-          <span className="inline-block bg-yellow-100 text-yellow-800 text-xs font-bold px-3 py-1 rounded-full mb-6 uppercase tracking-wider">
-            {selectedArticle.category}
-          </span>
-          <h1 className="text-3xl md:text-5xl font-extrabold text-gray-900 leading-tight mb-8">
-            {selectedArticle.title}
-          </h1>
-
-          <div className="flex flex-wrap items-center gap-6 text-sm text-gray-500 border-y border-gray-200 py-4 mb-8">
-            <div className="flex items-center">
-              <User className="w-5 h-5 mr-2 text-yellow-500" />{" "}
-              <span className="font-semibold text-gray-800 mr-1">Penulis:</span>{" "}
-              {selectedArticle.author}
-            </div>
-            <div className="flex items-center">
-              <Calendar className="w-5 h-5 mr-2 text-yellow-500" />{" "}
-              {selectedArticle.date}
-            </div>
-            <div className="flex items-center">
-              <Clock className="w-5 h-5 mr-2 text-yellow-500" />{" "}
-              {selectedArticle.readTime}
-            </div>
-            <button className="flex-1 sm:flex-none bg-purple-50 hover:bg-purple-100 text-purple-700 font-semibold py-3 px-6 rounded-xl flex items-center justify-center transition-colors">
-              <Share2 className="w-5 h-5 mr-2" /> Bagikan
-            </button>
-          </div>
-        </div>
-
-        {/* GAMBAR UTAMA */}
-        {/* <div className="max-w-5xl mx-auto px-4 mb-12">
-          <div className="relative h-64 md:h-125 w-full rounded-2xl overflow-hidden shadow-lg">
-            <img
-              src={selectedArticle.image}
-              alt={selectedArticle.title}
-              className="w-full h-full object-cover"
-            />
-          </div>
-        </div> */}
-
-        {/* ISI KONTEN */}
-        <div className="max-w-3xl mx-auto px-4">
-          <div className="prose prose-lg prose-blue text-gray-700 leading-relaxed text-justify">
-            {/* Karena data dummy berbentuk string panjang, kita pecah berdasarkan paragraf (enter) */}
-            {selectedArticle.content.split("\n").map((paragraph, index) => {
-              if (paragraph.trim() === "") return null; // Abaikan baris kosong
-
-              // Trik: Jika kalimat pendek (kurang dari 50 huruf), anggap sebagai Sub-judul
-              if (paragraph.trim().length < 50 && !paragraph.includes(".")) {
-                return (
-                  <h3
-                    key={index}
-                    className="text-2xl font-bold text-gray-900 mt-10 mb-4"
-                  >
-                    {paragraph}
-                  </h3>
-                );
-              }
-
-              // Jika panjang, anggap paragraf biasa
-              return (
-                <p key={index} className="mb-6">
-                  {paragraph}
-                </p>
-              );
-            })}
-          </div>
-
-          {/* FOOTER ARTIKEL (Aksi) */}
-          {/* <div className="mt-16 pt-8 border-t border-gray-200 flex flex-col sm:flex-row justify-between items-center gap-4">
-            <div className="flex gap-3 w-full sm:w-auto">
-              <button className="flex-1 sm:flex-none bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold py-3 px-6 rounded-xl flex items-center justify-center transition-colors">
-                <Share2 className="w-5 h-5 mr-2" /> Bagikan
-              </button>
-              <button className="flex-1 sm:flex-none bg-purple-50 hover:bg-purple-100 text-purple-700 font-semibold py-3 px-6 rounded-xl flex items-center justify-center transition-colors">
-                <Bookmark className="w-5 h-5 mr-2" /> Simpan
-              </button>
-            </div>
-          </div> */}
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen bg-gray-50 font-sans text-gray-800 pb-20">
@@ -222,7 +107,6 @@ export default function ArtikelPage() {
         </div>
 
         {/* KONTEN KANAN: GRID ARTIKEL */}
-
         <div className="w-full lg:w-3/4">
           <ScrollAnimation>
             {filteredData.length === 0 ? (
@@ -268,7 +152,7 @@ export default function ArtikelPage() {
                       </div>
 
                       <h3
-                        onClick={() => handleOpenArticle(article.id)}
+                        onClick={() => handleOpenArticle(article.slug)}
                         className="text-xl md:text-2xl font-bold text-gray-900 mb-3 leading-snug cursor-pointer group-hover:text-purple-700 transition-colors line-clamp-2"
                       >
                         {article.title}
@@ -284,7 +168,7 @@ export default function ArtikelPage() {
                         </span>
                         {/* Tombol Pemicu Buka Artikel */}
                         <button
-                          onClick={() => handleOpenArticle(article.id)}
+                          onClick={() => handleOpenArticle(article.slug)}
                           className="text-purple-700 font-bold text-sm flex items-center cursor-pointer hover:text-purple-900 group-hover:translate-x-1 transition-transform"
                         >
                           Baca Selengkapnya{" "}
