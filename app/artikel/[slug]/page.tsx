@@ -1,6 +1,6 @@
 "use client";
 
-import { use } from "react";
+import { use, useState } from "react";
 import { artikelData } from "@/data/dummies";
 import { notFound } from "next/navigation";
 import { useRouter } from "next/navigation";
@@ -12,6 +12,7 @@ import {
   Share2,
   ChevronRight,
 } from "lucide-react";
+import ShareDialog from "@/components/ui/share-dialog";
 
 export default function ArtikelDetailPage({
   params,
@@ -21,6 +22,8 @@ export default function ArtikelDetailPage({
   const { slug } = use(params);
   const router = useRouter();
   const article = artikelData.find((a) => a.slug === slug);
+  const [isShareOpen, setIsShareOpen] = useState(false);
+  const articleUrl = `${typeof window !== "undefined" ? window.location.origin : ""}/artikel/${slug}`;
 
   if (!article) return notFound();
 
@@ -68,7 +71,10 @@ export default function ArtikelDetailPage({
             <Clock className="w-5 h-5 mr-2 text-yellow-500" />
             {article.readTime}
           </div>
-          <button className="flex-1 sm:flex-none bg-purple-50 hover:bg-purple-100 text-purple-700 font-semibold py-3 px-6 rounded-xl flex items-center justify-center transition-colors">
+          <button
+            onClick={() => setIsShareOpen(true)}
+            className="flex-1 sm:flex-none bg-purple-50 hover:bg-purple-100 text-purple-700 font-semibold py-3 px-6 rounded-xl flex items-center justify-center transition-colors"
+          >
             <Share2 className="w-5 h-5 mr-2" /> Bagikan
           </button>
         </div>
@@ -99,6 +105,12 @@ export default function ArtikelDetailPage({
           })}
         </div>
       </div>
+      <ShareDialog
+        isOpen={isShareOpen}
+        onClose={() => setIsShareOpen(false)}
+        url={articleUrl}
+        title={""}
+      />
     </div>
   );
 }
