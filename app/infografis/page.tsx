@@ -59,7 +59,7 @@ export default function InfografisPage() {
       {/* Header Hero */}
       <div className="bg-white border-b-2 border-gray-100 text-white py-16 px-4">
         <div className="max-w-7xl mx-auto text-center">
-          <h1 className="text-black/80 text-4xl md:text-5xl font-bold mb-4">
+          <h1 className="text-gray-900 text-4xl md:text-5xl font-extrabold mb-4">
             Koleksi <span className="text-purple-800">Infografis</span>
           </h1>
           <p className="text-gray-500 max-w-2xl mx-auto text-lg">
@@ -147,7 +147,7 @@ export default function InfografisPage() {
                         alt={item.title}
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                       />
-                      <div className="absolute top-3 right-3 bg-yellow-400/30 backdrop-blur text-yellow-800 text-xs px-3 py-1 rounded-full shadow-sm">
+                      <div className="absolute top-3 right-3 bg-yellow-300 backdrop-blur text-gray-900 text-xs px-3 py-1 rounded-full shadow-sm">
                         {item.category}
                       </div>
                     </div>

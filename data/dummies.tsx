@@ -1,4 +1,4 @@
-import { LOREM } from "@/components/utils/strings";
+import { LOREM, loremIpsum } from "@/components/utils/strings";
 
 export interface InfografisModel {
   id: number;
@@ -18,6 +18,9 @@ export interface ArtikelModel {
   excerpt: string;
   author: string;
   category: string;
+  content: string;
+  image: string;
+  readTime: string;
 }
 
 export const infografisData: InfografisModel[] = [
@@ -105,7 +108,7 @@ export const infografisData: InfografisModel[] = [
     author: "Author 8",
     image:
       "https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&q=80&w=800",
-    category: "Sosial",
+    category: "Ekonomi",
     description: LOREM,
     area: "Papua Barat Daya",
   },
@@ -119,6 +122,10 @@ export const artikelData: ArtikelModel[] = [
     date: "1 Januari 2027",
     author: "Author 1",
     category: "Sosial",
+    content: loremIpsum,
+    image:
+      "https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&q=80&w=800",
+    readTime: "2 Menit",
   },
   {
     id: 2,
@@ -127,6 +134,10 @@ export const artikelData: ArtikelModel[] = [
     date: "1 Januari 2027",
     author: "Author 2",
     category: "Sosial",
+    content: loremIpsum,
+    image:
+      "https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&q=80&w=800",
+    readTime: "2 Menit",
   },
   {
     id: 3,
@@ -135,6 +146,10 @@ export const artikelData: ArtikelModel[] = [
     date: "1 Januari 2027",
     author: "Author 3",
     category: "Sosial",
+    content: loremIpsum,
+    image:
+      "https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&q=80&w=800",
+    readTime: "2 Menit",
   },
   {
     id: 4,
@@ -143,6 +158,10 @@ export const artikelData: ArtikelModel[] = [
     date: "1 Januari 2027",
     author: "Author 4",
     category: "Sosial",
+    content: loremIpsum,
+    image:
+      "https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&q=80&w=800",
+    readTime: "2 Menit",
   },
   {
     id: 5,
@@ -151,6 +170,10 @@ export const artikelData: ArtikelModel[] = [
     date: "1 Januari 2027",
     author: "Author 5",
     category: "Sosial",
+    content: loremIpsum,
+    image:
+      "https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&q=80&w=800",
+    readTime: "2 Menit",
   },
   {
     id: 6,
@@ -159,6 +182,10 @@ export const artikelData: ArtikelModel[] = [
     date: "1 Januari 2027",
     author: "Author 6",
     category: "Sosial",
+    content: loremIpsum,
+    image:
+      "https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&q=80&w=800",
+    readTime: "2 Menit",
   },
   {
     id: 7,
@@ -167,6 +194,10 @@ export const artikelData: ArtikelModel[] = [
     date: "1 Januari 2027",
     author: "Author 7",
     category: "Sosial",
+    content: loremIpsum,
+    image:
+      "https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&q=80&w=800",
+    readTime: "2 Menit",
   },
   {
     id: 8,
@@ -174,6 +205,10 @@ export const artikelData: ArtikelModel[] = [
     excerpt: LOREM,
     date: "1 Januari 2027",
     author: "Author 8",
-    category: "Sosial",
+    category: "Ekonomi",
+    content: loremIpsum,
+    image:
+      "https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&q=80&w=800",
+    readTime: "2 Menit",
   },
 ];
