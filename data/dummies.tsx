@@ -24,6 +24,8 @@ export interface ArtikelModel {
   slug: string;
 }
 
+export type DialogItem = InfografisModel | ArtikelModel;
+
 export const infografisData: InfografisModel[] = [
   {
     id: 1,
@@ -53,7 +55,7 @@ export const infografisData: InfografisModel[] = [
     date: "1 Januari 2027",
     author: "Author 3",
     image:
-      "https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&q=80&w=800",
+      "https://images.unsplash.com/photo-1775507685032-579ab21cdfa3?q=80&w=687&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
     category: "Sosial",
     description: LOREM,
     area: "Papua Barat Daya",

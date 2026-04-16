@@ -1,9 +1,16 @@
+"use client";
+
 import { ImageIcon, Users, ChevronRight } from "lucide-react";
 import ScrollAnimation from "../ui/scroll-anim";
-import { infografisData } from "@/data/dummies";
+import { infografisData, InfografisModel } from "@/data/dummies";
+import PreviewDialog from "../ui/preview-dialog";
+import { useState } from "react";
 
 export default function InfografisSection() {
   const infografisTerbaru = infografisData.slice(0, 3);
+  const [selectedItem, setSelectedItem] = useState<InfografisModel | null>(
+    null,
+  );
   return (
     <section id="infografis" className="py-20 bg-gray-50">
       <ScrollAnimation>
@@ -19,7 +26,7 @@ export default function InfografisSection() {
             </p>
           </div>
 
-          {/* Grid Infografis - Ini yang nanti akan di-looping menggunakan data Google Sheets */}
+          {/* Grid Infografis */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {infografisTerbaru.map((item) => (
               <div
@@ -33,7 +40,12 @@ export default function InfografisSection() {
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                   />
                   <div className="absolute inset-0 bg-linear-to-t from-black/70 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-4">
-                    <button className="bg-yellow-500 text-purple-900 text-sm font-bold py-2 px-4 rounded w-full">
+                    <button
+                      onClick={() => {
+                        setSelectedItem(item);
+                      }}
+                      className="bg-yellow-500 text-purple-900 text-sm font-bold py-2 px-4 rounded w-full"
+                    >
                       Lihat Detail
                     </button>
                   </div>
@@ -59,6 +71,10 @@ export default function InfografisSection() {
             </button>
           </div>
         </div>
+        <PreviewDialog
+          item={selectedItem}
+          onClose={() => setSelectedItem(null)}
+        />
       </ScrollAnimation>
     </section>
   );

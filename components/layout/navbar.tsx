@@ -7,7 +7,7 @@ export default function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   return (
-    <nav className="bg-white text-purple-900 sticky top-0 z-50 border-2 border-gray-100">
+    <nav className="bg-white text-gray-700 sticky top-0 z-50 border-2 border-gray-100">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           {/* Logo Area */}
@@ -16,7 +16,7 @@ export default function Navbar() {
               <BarChart3 className="w-6 h-6 inline-block mr-1" />
             </div>
             <div>
-              <h1 className="font-bold text-lg leading-tight">
+              <h1 className="font-bold text-purple-900 text-lg leading-tight">
                 Pojok Statistik
               </h1>
               <p className="text-xs text-purple-500">BPS Papua Barat x UNIPA</p>

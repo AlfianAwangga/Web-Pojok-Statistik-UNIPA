@@ -1,8 +1,16 @@
+"use client";
+
 import { BookOpen, ArrowRight } from "lucide-react";
 import ScrollAnimation from "../ui/scroll-anim";
 import { artikelData } from "@/data/dummies";
+import { useRouter } from "next/navigation";
 
 export default function ArtikelSection() {
+  const router = useRouter();
+  const handleOpenArticle = (slug: string) => {
+    router.push(`/artikel/${slug}`);
+  };
+
   const artikelTerbaru = artikelData.slice(0, 3);
   return (
     <section id="artikel" className="py-20 bg-white">
@@ -38,12 +46,12 @@ export default function ArtikelSection() {
                   <span className="text-xs text-gray-500 font-medium">
                     Oleh: {artikel.author}
                   </span>
-                  <a
-                    href="#"
+                  <button
+                    onClick={() => handleOpenArticle(artikel.slug)}
                     className="bg-white text-gray-600 p-2 rounded-lg border border-gray-600 hover:text-yellow-300 hover:bg-purple-900 text-sm font-bold flex items-center"
                   >
                     Baca <ArrowRight className="w-4 h-4 ml-1" />
-                  </a>
+                  </button>
                 </div>
               </div>
             ))}
