@@ -41,7 +41,7 @@ export default function Navbar() {
               Artikel
             </a>
             <a
-              href="#galeri"
+              href="/galeri"
               className="hover:text-yellow-400 transition-colors"
             >
               Galeri
