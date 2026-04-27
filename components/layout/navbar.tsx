@@ -2,9 +2,32 @@
 
 import { useState } from "react";
 import { BarChart3, X, Menu } from "lucide-react";
+import { usePathname } from "next/navigation";
+import Link from "next/link";
 
 export default function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+
+  const pathname = usePathname();
+
+  const menuItems = [
+    {
+      name: "Beranda",
+      href: "/",
+    },
+    {
+      name: "Infografis",
+      href: "/infografis",
+    },
+    {
+      name: "Artikel",
+      href: "/artikel",
+    },
+    {
+      name: "Galeri",
+      href: "/galeri",
+    },
+  ];
 
   return (
     <nav className="bg-white text-gray-700 sticky top-0 z-50 border-2 border-gray-100">
@@ -24,35 +47,32 @@ export default function Navbar() {
           </div>
 
           {/* Desktop Menu */}
-          <div className="hidden md:flex space-x-8">
-            <a href="/" className="hover:text-yellow-400 transition-colors">
-              Beranda
-            </a>
-            <a
-              href="/infografis"
-              className="hover:text-yellow-400 transition-colors"
-            >
-              Infografis
-            </a>
-            <a
-              href="/artikel"
-              className="hover:text-yellow-400 transition-colors"
-            >
-              Artikel
-            </a>
-            <a
-              href="/galeri"
-              className="hover:text-yellow-400 transition-colors"
-            >
-              Galeri
-            </a>
+          <div className="hidden md:flex">
+            {menuItems.map((item) => {
+              const isActive = pathname === item.href;
+
+              return (
+                <Link
+                  key={item.name}
+                  href={item.href}
+                  className={`flex items-center gap-3 px-8 py-3 rounded-lg transition-all
+              ${
+                isActive
+                  ? "text-yellow-400"
+                  : "hover:bg-gray-50 hover:text-yellow-400"
+              }`}
+                >
+                  <span>{item.name}</span>
+                </Link>
+              );
+            })}
           </div>
 
           {/* Mobile Menu Button */}
           <div className="md:hidden flex items-center">
             <button
               onClick={() => setIsMenuOpen(!isMenuOpen)}
-              className="text-white hover:text-yellow-400"
+              className="text-purple-900 hover:text-yellow-400"
             >
               {isMenuOpen ? (
                 <X className="w-6 h-6" />
@@ -66,31 +86,25 @@ export default function Navbar() {
 
       {/* Mobile Menu Dropdown */}
       {isMenuOpen && (
-        <div className="md:hidden bg-purple-800 px-2 pt-2 pb-3 space-y-1 sm:px-3">
-          <a
-            href="/"
-            className="block px-3 py-2 rounded-md hover:bg-purple-700 hover:text-yellow-400"
-          >
-            Beranda
-          </a>
-          <a
-            href="/infografis"
-            className="block px-3 py-2 rounded-md hover:bg-purple-700 hover:text-yellow-400"
-          >
-            Infografis
-          </a>
-          <a
-            href="/artikel"
-            className="block px-3 py-2 rounded-md hover:bg-purple-700 hover:text-yellow-400"
-          >
-            Artikel
-          </a>
-          <a
-            href="#galeri"
-            className="block px-3 py-2 rounded-md hover:bg-purple-700 hover:text-yellow-400"
-          >
-            Galeri
-          </a>
+        <div className="md:hidden px-2 pt-2 pb-3 space-y-1 sm:px-3">
+          {menuItems.map((item) => {
+            const isActive = pathname === item.href;
+
+            return (
+              <Link
+                key={item.name}
+                href={item.href}
+                className={`flex items-center gap-3 px-8 py-3 rounded-lg border-b-2 border-gray-100 transition-all
+              ${
+                isActive
+                  ? "text-yellow-400"
+                  : "hover:bg-purple-50 hover:text-yellow-400"
+              }`}
+              >
+                <span>{item.name}</span>
+              </Link>
+            );
+          })}
         </div>
       )}
     </nav>

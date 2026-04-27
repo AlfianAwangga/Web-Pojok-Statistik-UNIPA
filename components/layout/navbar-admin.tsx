@@ -1,0 +1,164 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import {
+  FileText,
+  GraduationCap,
+  ImageIcon,
+  LayoutDashboard,
+  PieChart,
+  Settings,
+  PanelLeftClose,
+  PanelLeftOpen,
+  BarChart,
+  BarChart3,
+} from "lucide-react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+
+export default function NavbarAdmin() {
+  const pathname = usePathname();
+  const [isCollapsed, setIsCollapsed] = useState(false);
+
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth < 768) {
+        setIsCollapsed(true); // mobile auto kecil
+      } else {
+        setIsCollapsed(false); // desktop normal
+      }
+    };
+
+    handleResize(); // jalankan saat pertama kali render
+    window.addEventListener("resize", handleResize);
+
+    return () => {
+      window.removeEventListener("resize", handleResize);
+    };
+  }, []);
+
+  const menuItems = [
+    {
+      name: "Dashboard",
+      href: "/admin/dashboard",
+      icon: LayoutDashboard,
+    },
+    {
+      name: "Infografis",
+      href: "#",
+      icon: PieChart,
+    },
+    {
+      name: "Artikel",
+      href: "#",
+      icon: FileText,
+    },
+    {
+      name: "Galeri",
+      href: "#",
+      icon: ImageIcon,
+    },
+  ];
+
+  return (
+    <aside
+      className={`
+        ${isCollapsed ? "w-20" : "w-64"}
+        bg-purple-900 flex flex-col h-screen sticky top-0
+        transition-all duration-300
+      `}
+    >
+      {/* Brand Area */}
+      <div
+        className={`
+    h-16 border-b border-purple-800 bg-purple-950
+    flex items-center
+    ${isCollapsed ? "justify-center px-2" : "justify-between px-4"}
+  `}
+      >
+        {/* Logo + Title */}
+        {!isCollapsed && (
+          <div className="flex items-center overflow-hidden">
+            <div className="bg-white p-1.5 rounded shrink-0">
+              <BarChart3 className="w-5 h-5 text-purple-900" />
+            </div>
+
+            <div className="ml-3">
+              <h1 className="font-bold text-white tracking-wide text-sm leading-tight">
+                Backend
+              </h1>
+              <p className="text-[10px] text-slate-400">
+                Pojok Statistik BPS x UNIPA
+              </p>
+            </div>
+          </div>
+        )}
+
+        {/* Toggle Button */}
+        <button
+          onClick={() => setIsCollapsed(!isCollapsed)}
+          className="p-2 rounded-lg hover:bg-purple-800 transition shrink-0"
+        >
+          {isCollapsed ? (
+            <PanelLeftOpen className="w-5 h-5" />
+          ) : (
+            <PanelLeftClose className="w-5 h-5" />
+          )}
+        </button>
+      </div>
+
+      {/* Menu Items */}
+      <div className="flex-1 overflow-y-auto py-6 px-3 space-y-2">
+        {!isCollapsed && (
+          <p className="px-3 text-xs font-bold text-yellow-200 uppercase tracking-wider mb-3">
+            KONTEN WEB
+          </p>
+        )}
+
+        <div className="flex flex-col text-sm font-medium">
+          {menuItems.map((item) => {
+            const Icon = item.icon;
+            const isActive = pathname === item.href;
+
+            return (
+              <Link
+                key={item.name}
+                href={item.href}
+                className={`
+                  flex items-center
+                  ${isCollapsed ? "justify-center px-2 py-3" : "gap-3 px-4 py-3"}
+                  rounded-lg transition-all
+                  ${
+                    isActive
+                      ? "bg-yellow-400 text-gray-700 shadow-md"
+                      : "hover:bg-purple-800 hover:text-white"
+                  }
+                `}
+              >
+                <Icon className="w-5 h-5 shrink-0" />
+                {!isCollapsed && <span>{item.name}</span>}
+              </Link>
+            );
+          })}
+        </div>
+
+        {!isCollapsed && (
+          <p className="px-3 text-xs font-bold text-yellow-200 uppercase tracking-wider mb-3 mt-8">
+            Profilku
+          </p>
+        )}
+
+        <button
+          className={`
+            w-full flex items-center rounded-lg text-sm font-medium
+            hover:bg-purple-800 hover:text-white transition-all
+            ${isCollapsed ? "justify-center px-2 py-3" : "px-4 py-3 gap-3"}
+          `}
+        >
+          <Settings className="w-5 h-5 shrink-0" />
+          {!isCollapsed && <span>Pengaturan Akun</span>}
+        </button>
+      </div>
+    </aside>
+  );
+}
