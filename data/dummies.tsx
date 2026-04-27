@@ -24,6 +24,22 @@ export interface ArtikelModel {
   slug: string;
 }
 
+export interface FotoModel {
+  id: number;
+  url: string;
+  caption: string;
+  lokasi: string;
+  tanggal: string;
+}
+
+export interface VideoModel {
+  id: number;
+  title: string;
+  youtubeId: string;
+  deskripsi: string;
+  durasi: string;
+}
+
 export type DialogItem = InfografisModel | ArtikelModel;
 
 export const infografisData: InfografisModel[] = [
@@ -221,5 +237,73 @@ export const artikelData: ArtikelModel[] = [
       "https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&q=80&w=800",
     readTime: "2 Menit",
     slug: "artikel-8",
+  },
+];
+export const fotoData: FotoModel[] = [
+  {
+    id: 1,
+    url: "https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&q=80&w=800",
+    caption: "Dokumentasi 1",
+    lokasi: "Ruangan 1",
+    tanggal: "12 April 2026",
+  },
+  {
+    id: 2,
+    url: "https://images.unsplash.com/photo-1573164713988-8665fc963095?auto=format&fit=crop&q=80&w=800",
+    caption: "Dokumentasi 2",
+    lokasi: "Ruangan 2",
+    tanggal: "05 April 2026",
+  },
+  {
+    id: 3,
+    url: "https://images.unsplash.com/photo-1517048676732-d65bc937f952?auto=format&fit=crop&q=80&w=800",
+    caption: "Dokumentasi 3",
+    lokasi: "Ruangan 3",
+    tanggal: "28 Mar 2026",
+  },
+  {
+    id: 4,
+    url: "https://images.unsplash.com/photo-1531545514256-b1400bc00f31?auto=format&fit=crop&q=80&w=800",
+    caption: "Dokumentasi 4",
+    lokasi: "Ruangan 4",
+    tanggal: "20 Mar 2026",
+  },
+  {
+    id: 5,
+    url: "https://images.unsplash.com/photo-1582213782179-e0d53f98f2ca?auto=format&fit=crop&q=80&w=800",
+    caption: "Dokumentasi 5",
+    lokasi: "Ruangan 5",
+    tanggal: "10 Mar 2026",
+  },
+  {
+    id: 6,
+    url: "https://images.unsplash.com/photo-1516321497487-e288fb19713f?auto=format&fit=crop&q=80&w=800",
+    caption: "Dokumentasi 6",
+    lokasi: "Ruangan 6",
+    tanggal: "01 Mar 2026",
+  },
+];
+
+export const videoData: VideoModel[] = [
+  {
+    id: 1,
+    youtubeId: "dQw4w9WgXcQ", // ID unik YouTube (Contoh)
+    title: "Video 1",
+    deskripsi: "Deskripsi Video 1",
+    durasi: "02:45",
+  },
+  {
+    id: 2,
+    youtubeId: "jNQXAC9IVRw",
+    title: "Video 2",
+    deskripsi: "Deskripsi Video 2",
+    durasi: "15:20",
+  },
+  {
+    id: 3,
+    youtubeId: "M7lc1UVf-VE",
+    title: "Video 3",
+    deskripsi: "Deskripsi Video 3",
+    durasi: "05:12",
   },
 ];

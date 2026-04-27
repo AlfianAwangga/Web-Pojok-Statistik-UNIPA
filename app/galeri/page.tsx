@@ -1,103 +1,23 @@
 "use client";
 
-import React, { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import PreviewImage from "@/components/ui/preview-image";
+import { FotoModel, fotoData, videoData } from "@/data/dummies";
+import { AnimatePresence, motion } from "framer-motion";
 import {
-  Camera,
-  PlayCircle,
-  MapPin,
   Calendar,
+  Camera,
   ExternalLink,
-  Image as ImageIcon,
+  MapPin,
+  PlayCircle,
 } from "lucide-react";
-
-interface FotoGaleri {
-  id: string;
-  url: string;
-  caption: string;
-  lokasi: string;
-  tanggal: string;
-}
-
-// --- MOCK DATABASE ---
-const DATA_FOTO = [
-  {
-    id: "F001",
-    url: "https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&q=80&w=800",
-    caption: "Diskusi Verifikasi Data Susenas",
-    lokasi: "Ruang Rapat BPS",
-    tanggal: "12 April 2026",
-  },
-  {
-    id: "F002",
-    url: "https://images.unsplash.com/photo-1573164713988-8665fc963095?auto=format&fit=crop&q=80&w=800",
-    caption: "Presentasi Hasil Kajian Infografis",
-    lokasi: "Aula Universitas Papua",
-    tanggal: "05 April 2026",
-  },
-  {
-    id: "F003",
-    url: "https://images.unsplash.com/photo-1517048676732-d65bc937f952?auto=format&fit=crop&q=80&w=800",
-    caption: "Survei Harga Konsumen (Inflasi)",
-    lokasi: "Pasar Wosi, Manokwari",
-    tanggal: "28 Mar 2026",
-  },
-  {
-    id: "F004",
-    url: "https://images.unsplash.com/photo-1531545514256-b1400bc00f31?auto=format&fit=crop&q=80&w=800",
-    caption: "Rapat Evaluasi Akhir Bulan",
-    lokasi: "Kantor BPS Papua Barat",
-    tanggal: "20 Mar 2026",
-  },
-  {
-    id: "F005",
-    url: "https://images.unsplash.com/photo-1582213782179-e0d53f98f2ca?auto=format&fit=crop&q=80&w=800",
-    caption: "Bimbingan Teknis Mahasiswa Magang",
-    lokasi: "Laboratorium Komputer",
-    tanggal: "10 Mar 2026",
-  },
-  {
-    id: "F006",
-    url: "https://images.unsplash.com/photo-1516321497487-e288fb19713f?auto=format&fit=crop&q=80&w=800",
-    caption: "Pengumpulan Data Pertanian",
-    lokasi: "Kabupaten Pegunungan Arfak",
-    tanggal: "01 Mar 2026",
-  },
-];
-
-const DATA_VIDEO = [
-  {
-    id: "V001",
-    youtubeId: "dQw4w9WgXcQ", // ID unik YouTube (Contoh)
-    title: "Animasi Edukasi: Apa Itu Sensus Penduduk?",
-    deskripsi:
-      "Video grafis pendek yang menjelaskan pentingnya partisipasi masyarakat dalam sensus 10 tahunan.",
-    durasi: "02:45",
-  },
-  {
-    id: "V002",
-    youtubeId: "jNQXAC9IVRw",
-    title: "Dokumenter Mini: Di Balik Layar Pengumpulan Data",
-    deskripsi:
-      "Mengikuti perjalanan petugas lapangan BPS menyusuri daerah pelosok Papua Barat untuk mengumpulkan data riil.",
-    durasi: "15:20",
-  },
-  {
-    id: "V003",
-    youtubeId: "M7lc1UVf-VE",
-    title: "Tutorial Membaca Infografis BPS",
-    deskripsi:
-      "Panduan singkat bagi mahasiswa dan umum cara membaca diagram dan grafik kompleks dari rilis berita resmi statistik.",
-    durasi: "05:12",
-  },
-];
+import { useState } from "react";
 
 export default function HalamanGaleri() {
   // State utama untuk mengontrol Tab yang sedang aktif
   const [activeTab, setActiveTab] = useState("foto"); // Nilai bisa 'foto' atau 'video'
 
   // State untuk pop-up gambar penuh
-  const [selectedImage, setSelectedImage] = useState<FotoGaleri | null>(null);
+  const [selectedImage, setSelectedImage] = useState<FotoModel | null>(null);
 
   return (
     <div className="min-h-screen bg-gray-50 font-sans text-gray-800 pb-20">
@@ -153,7 +73,7 @@ export default function HalamanGaleri() {
               transition={{ duration: 0.3 }}
               className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6"
             >
-              {DATA_FOTO.map((foto) => (
+              {fotoData.map((foto) => (
                 <div
                   key={foto.id}
                   className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden group cursor-pointer hover:shadow-xl transition-all"
@@ -194,7 +114,7 @@ export default function HalamanGaleri() {
               transition={{ duration: 0.3 }}
               className="grid grid-cols-2 md:grid-cols-3 gap-6"
             >
-              {DATA_VIDEO.map((video) => (
+              {videoData.map((video) => (
                 <div
                   key={video.id}
                   className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-lg transition-shadow"
@@ -239,49 +159,10 @@ export default function HalamanGaleri() {
       </div>
 
       {/* --- POP-UP GAMBAR (LIGHTBOX) --- */}
-      <AnimatePresence>
-        {selectedImage && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-8">
-            {/* Background Hitam Pekat (Klik untuk menutup) */}
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="absolute inset-0 bg-black/95 backdrop-blur-sm cursor-zoom-out"
-              onClick={() => setSelectedImage(null)}
-            ></motion.div>
-
-            <motion.div
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.9 }}
-              className="relative w-full max-w-5xl z-10 flex flex-col items-center"
-            >
-              <img
-                src={selectedImage.url}
-                alt={selectedImage.caption}
-                className="w-full max-h-[75vh] object-contain rounded-lg shadow-2xl mb-6"
-              />
-
-              <div className="text-center text-white bg-black/50 p-4 rounded-xl backdrop-blur-md border border-white/10 w-full max-w-2xl">
-                <p className="text-xl font-bold mb-2">
-                  {selectedImage.caption}
-                </p>
-                <div className="flex justify-center items-center gap-6 text-sm text-gray-300">
-                  <span className="flex items-center">
-                    <MapPin className="w-4 h-4 mr-1 text-yellow-400" />{" "}
-                    {selectedImage.lokasi}
-                  </span>
-                  <span className="flex items-center">
-                    <Calendar className="w-4 h-4 mr-1 text-yellow-400" />{" "}
-                    {selectedImage.tanggal}
-                  </span>
-                </div>
-              </div>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
+      <PreviewImage
+        item={selectedImage}
+        onClose={() => setSelectedImage(null)}
+      />
     </div>
   );
 }
