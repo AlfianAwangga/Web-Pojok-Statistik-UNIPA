@@ -34,7 +34,7 @@ export default function ArtikelSection() {
                 className="bg-white p-8 rounded-xl shadow-md border-t-4 border-purple-900 hover:-translate-y-1 transition-transform duration-300"
               >
                 <p className="text-xs font-semibold text-yellow-600 mb-3">
-                  {artikel.date}
+                  {artikel.publishDate}
                 </p>
                 <h4 className="text-xl font-bold text-gray-900 mb-3 leading-snug">
                   {artikel.title}
