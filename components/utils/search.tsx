@@ -28,9 +28,30 @@ export function filterData<T extends { title: string; category: string }>(
   return result;
 }
 
+export function filterTableData<T>(
+  data: T[],
+  searchTerm: string,
+  fields: (keyof T)[],
+): T[] {
+  return data.filter((item) =>
+    fields
+      .map((field) => String(item[field] ?? ""))
+      .join(" ")
+      .toLowerCase()
+      .includes(searchTerm.toLowerCase()),
+  );
+}
+
 export function getUniqueCategories<T extends { category: string }>(
   data: T[],
 ): string[] {
   const categories = data.map((item) => item.category.trim());
   return ["Semua Kategori", ...Array.from(new Set(categories))];
+}
+
+export function getUniqueCategories1<T extends { category: string }>(
+  data: T[],
+): string[] {
+  const categories = data.map((item) => item.category.trim());
+  return [...Array.from(new Set(categories))];
 }

@@ -29,7 +29,7 @@ export default function NavbarAdmin() {
       }
     };
 
-    handleResize(); // jalankan saat pertama kali render
+    handleResize();
     window.addEventListener("resize", handleResize);
 
     return () => {
@@ -45,7 +45,7 @@ export default function NavbarAdmin() {
     },
     {
       name: "Infografis",
-      href: "#",
+      href: "/admin/infografis",
       icon: PieChart,
     },
     {
