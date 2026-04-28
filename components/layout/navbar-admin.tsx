@@ -50,7 +50,7 @@ export default function NavbarAdmin() {
     },
     {
       name: "Artikel",
-      href: "#",
+      href: "/admin/artikel",
       icon: FileText,
     },
     {

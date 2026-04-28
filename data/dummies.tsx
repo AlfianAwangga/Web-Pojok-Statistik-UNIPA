@@ -1,5 +1,74 @@
 import { LOREM, loremIpsum } from "@/components/utils/strings";
 
+export interface ArticleSection {
+  id: number;
+  type: "subtitle" | "paragraph" | "highlight" | "quote" | "image";
+  content: string;
+}
+
+export interface ArtikelModel {
+  id: number;
+  title: string;
+  slug: string;
+  category: string;
+  excerpt: string;
+  thumbnail: string;
+  author: string;
+  publishDate: string;
+  readTime: string;
+  featured?: boolean;
+  tags?: string[];
+  sections: ArticleSection[];
+}
+
+export const artikelData: ArtikelModel[] = [
+  {
+    id: 1,
+    title: "Perkembangan Inflasi Papua Barat Tahun 2027",
+    slug: "perkembangan-inflasi-papua-barat-2027",
+    category: "Ekonomi",
+    excerpt:
+      "Inflasi daerah menunjukkan tren kenaikan pada triwulan pertama tahun 2027.",
+    thumbnail:
+      "https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&q=80&w=800",
+    author: "Author 1",
+    publishDate: "1 Januari 2027",
+    readTime: "5 Menit",
+    featured: true,
+    tags: ["Inflasi", "Ekonomi", "Papua Barat"],
+    sections: [
+      {
+        id: 1,
+        type: "subtitle",
+        content: "Kondisi Inflasi Triwulan I",
+      },
+      {
+        id: 2,
+        type: "paragraph",
+        content:
+          "Berdasarkan hasil pemantauan BPS, inflasi pada triwulan pertama mengalami peningkatan terutama pada kelompok makanan dan minuman.",
+      },
+      {
+        id: 3,
+        type: "highlight",
+        content:
+          "Inflasi tertinggi terjadi pada kelompok makanan, minuman, dan tembakau.",
+      },
+      {
+        id: 4,
+        type: "subtitle",
+        content: "Perbandingan dengan Tahun Sebelumnya",
+      },
+      {
+        id: 5,
+        type: "quote",
+        content:
+          "Dibandingkan tahun sebelumnya, laju inflasi meningkat sebesar 1,2 persen dan menunjukkan tekanan harga yang lebih tinggi.",
+      },
+    ],
+  },
+];
+
 export interface InfografisModel {
   id: number;
   title: string;
@@ -9,19 +78,6 @@ export interface InfografisModel {
   category: string;
   description: string;
   area: String;
-}
-
-export interface ArtikelModel {
-  id: number;
-  title: string;
-  date: string;
-  excerpt: string;
-  author: string;
-  category: string;
-  content: string;
-  image: string;
-  readTime: string;
-  slug: string;
 }
 
 export interface FotoModel {
@@ -45,7 +101,7 @@ export type DialogItem = InfografisModel | ArtikelModel;
 export const infografisData: InfografisModel[] = [
   {
     id: 1,
-    title: "Infografis 1",
+    title: "Perkembangan Inflasi Papua Barat Tahun 2027",
     date: "1 Januari 2027",
     author: "Author 1",
     image:
@@ -133,112 +189,6 @@ export const infografisData: InfografisModel[] = [
   },
 ];
 
-export const artikelData: ArtikelModel[] = [
-  {
-    id: 1,
-    title: "Artikel 1",
-    excerpt: LOREM,
-    date: "1 Januari 2027",
-    author: "Author 1",
-    category: "Sosial",
-    content: loremIpsum,
-    image:
-      "https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&q=80&w=800",
-    readTime: "2 Menit",
-    slug: "artikel-1",
-  },
-  {
-    id: 2,
-    title: "Artikel 2",
-    excerpt: LOREM,
-    date: "1 Januari 2027",
-    author: "Author 2",
-    category: "Sosial",
-    content: loremIpsum,
-    image:
-      "https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&q=80&w=800",
-    readTime: "2 Menit",
-    slug: "artikel-2",
-  },
-  {
-    id: 3,
-    title: "Artikel 3",
-    excerpt: LOREM,
-    date: "1 Januari 2027",
-    author: "Author 3",
-    category: "Sosial",
-    content: loremIpsum,
-    image:
-      "https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&q=80&w=800",
-    readTime: "2 Menit",
-    slug: "artikel-3",
-  },
-  {
-    id: 4,
-    title: "Artikel 4",
-    excerpt: LOREM,
-    date: "1 Januari 2027",
-    author: "Author 4",
-    category: "Sosial",
-    content: loremIpsum,
-    image:
-      "https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&q=80&w=800",
-    readTime: "2 Menit",
-    slug: "artikel-4",
-  },
-  {
-    id: 5,
-    title: "Artikel 5",
-    excerpt: LOREM,
-    date: "1 Januari 2027",
-    author: "Author 5",
-    category: "Sosial",
-    content: loremIpsum,
-    image:
-      "https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&q=80&w=800",
-    readTime: "2 Menit",
-    slug: "artikel-5",
-  },
-  {
-    id: 6,
-    title: "Artikel 6",
-    excerpt: LOREM,
-    date: "1 Januari 2027",
-    author: "Author 6",
-    category: "Sosial",
-    content: loremIpsum,
-    image:
-      "https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&q=80&w=800",
-    readTime: "2 Menit",
-    slug: "artikel-6",
-  },
-  {
-    id: 7,
-    title: "Artikel 7",
-    excerpt: LOREM,
-    date: "1 Januari 2027",
-    author: "Author 7",
-    category: "Sosial",
-    content: loremIpsum,
-    image:
-      "https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&q=80&w=800",
-    readTime: "2 Menit",
-    slug: "artikel-7",
-  },
-  {
-    id: 8,
-    title: "Artikel 8",
-    excerpt: LOREM,
-    date: "1 Januari 2027",
-    author: "Author 8",
-    category: "Ekonomi",
-    content: loremIpsum,
-    image:
-      "https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&q=80&w=800",
-    readTime: "2 Menit",
-    slug: "artikel-8",
-  },
-];
 export const fotoData: FotoModel[] = [
   {
     id: 1,

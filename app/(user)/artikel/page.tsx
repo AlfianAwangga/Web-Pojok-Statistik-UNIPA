@@ -129,7 +129,7 @@ export default function ArtikelPage() {
                     {/* Thumbnail */}
                     <div className="md:w-2/5 h-56 md:h-auto relative overflow-hidden">
                       <img
-                        src={article.image}
+                        src={article.thumbnail}
                         alt={article.title}
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
                       />
@@ -143,7 +143,7 @@ export default function ArtikelPage() {
                       <div className="flex items-center text-xs text-gray-500 mb-3 space-x-4">
                         <span className="flex items-center">
                           <Calendar className="w-3.5 h-3.5 mr-1 text-purple-600" />{" "}
-                          {article.date}
+                          {article.publishDate}
                         </span>
                         <span className="flex items-center">
                           <Clock className="w-3.5 h-3.5 mr-1 text-yellow-500" />{" "}

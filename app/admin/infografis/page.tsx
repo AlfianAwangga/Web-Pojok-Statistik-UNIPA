@@ -89,20 +89,15 @@ export default function InfografisAdmin() {
           <table className="w-full table-fixed border-collapse text-left">
             <thead>
               <tr className="border-b border-slate-200 bg-slate-50 text-xs uppercase tracking-wider text-slate-500">
-                {/* Lebar sama rata */}
-                <th className="w-1/5 px-6 py-4 font-semibold">Karya</th>
-
-                <th className="hidden md:table-cell w-1/5 px-6 py-4 font-semibold">
+                <th className="w-2/5 px-6 py-4 font-semibold">Judul</th>
+                <th className="hidden md:table-cell w-1/6 px-6 py-4 font-semibold">
                   Kategori
                 </th>
-
-                <th className="w-1/5 px-6 py-4 font-semibold">Penulis</th>
-
-                <th className="hidden md:table-cell w-1/5 px-6 py-4 font-semibold">
+                <th className="w-1/6 px-6 py-4 font-semibold">Penulis</th>
+                <th className="hidden md:table-cell w-1/6 px-6 py-4 font-semibold">
                   Tanggal
                 </th>
-
-                <th className="w-1/5 px-6 py-4 text-right font-semibold">
+                <th className="w-1/6 px-6 py-4 text-right font-semibold">
                   Aksi
                 </th>
               </tr>
@@ -111,22 +106,21 @@ export default function InfografisAdmin() {
             <tbody className="divide-y divide-slate-100">
               {filteredData.map((item) => (
                 <tr key={item.id} className="transition hover:bg-slate-50">
-                  {/* KARYA */}
-                  <td className="w-1/5 px-6 py-4">
-                    <p className="truncate text-sm font-bold text-slate-800">
-                      {item.title}
-                    </p>
+                  <td className="px-6 py-4">
+                    <div className="space-y-1">
+                      <p className="truncate text-sm font-bold text-slate-800">
+                        {item.title}
+                      </p>
+                    </div>
                   </td>
 
-                  {/* KATEGORI */}
-                  <td className="hidden md:table-cell w-1/5 px-6 py-4">
+                  <td className="hidden md:table-cell px-6 py-4">
                     <p className="truncate text-sm text-slate-600">
                       {item.category}
                     </p>
                   </td>
 
-                  {/* PENULIS */}
-                  <td className="w-1/5 px-6 py-4">
+                  <td className="px-6 py-4">
                     <p
                       className={`truncate text-sm font-semibold ${
                         item.author === currentUser
@@ -139,34 +133,25 @@ export default function InfografisAdmin() {
                     </p>
                   </td>
 
-                  {/* TANGGAL */}
-                  <td className="hidden md:table-cell w-1/5 px-6 py-4">
+                  <td className="hidden md:table-cell px-6 py-4">
                     <p className="truncate text-sm text-slate-600">
                       {item.date}
                     </p>
                   </td>
 
-                  {/* AKSI */}
-                  <td className="w-1/5 px-6 py-4">
+                  <td className="px-6 py-4">
                     <div className="flex justify-end gap-2">
                       {item.author === currentUser ? (
                         <>
-                          <button
-                            title="Edit Karya"
-                            className="rounded-md p-2 text-blue-600 transition hover:bg-blue-50"
-                          >
+                          <button className="rounded-md p-2 text-blue-600 transition hover:bg-blue-50">
                             <Edit className="h-4 w-4" />
                           </button>
-
-                          <button
-                            title="Hapus"
-                            className="rounded-md p-2 text-red-500 transition hover:bg-red-50"
-                          >
+                          <button className="rounded-md p-2 text-red-500 transition hover:bg-red-50">
                             <Trash2 className="h-4 w-4" />
                           </button>
                         </>
                       ) : (
-                        <span className="truncate px-2 text-xs italic text-slate-400">
+                        <span className="text-xs italic text-slate-400">
                           Hanya lihat
                         </span>
                       )}
