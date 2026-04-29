@@ -31,6 +31,9 @@ export default function InfografisSection() {
             {infografisTerbaru.map((item) => (
               <div
                 key={item.id}
+                onClick={() => {
+                  setSelectedItem(item);
+                }}
                 className="bg-white rounded-xl shadow-lg overflow-hidden group hover:shadow-xl transition-all duration-300 border border-gray-100"
               >
                 <div className="relative h-64 overflow-hidden">

@@ -62,12 +62,12 @@ export default function AdminDashboardPage() {
 
   return (
     <div className="space-y-6">
-      <div className="bg-purple-800 rounded-2xl p-8 text-white shadow-lg relative overflow-hidden">
+      <div className="bg-purple-800 rounded-2xl p-4 md:p-8 text-white shadow-lg relative overflow-hidden">
         <div className="relative z-10">
-          <h2 className="text-3xl font-bold mb-2">
+          <h2 className="text-2xl md:text-3xl font-bold mb-2">
             Selamat datang, {currentUser}! 👋
           </h2>
-          <p className="text-blue-100 max-w-2xl">
+          <p className="text-sm text-blue-100 max-w-2xl">
             Ini adalah ruang kerja kolaboratif. Kamu dapat mengelola karyamu
             sendiri sekaligus memantau seluruh publikasi dan aktivitas logbook
             dari rekan-rekan tim magang lainnya.
@@ -90,8 +90,8 @@ export default function AdminDashboardPage() {
                 {myInfografisCount}
               </h4>
             </div>
-            <div className="bg-sky-50 p-3 rounded-xl">
-              <CheckCircle className="w-8 h-8 text-sky-600" />
+            <div className="sm:bg-sky-50 p-3 rounded-xl">
+              <CheckCircle className="hidden sm:block sm:block sm:size-8 sm:text-sky-600" />
             </div>
           </div>
           <div className="bg-white p-6 rounded-2xl border-l-4 border-emerald-500 shadow-sm flex items-center justify-between">
@@ -101,8 +101,8 @@ export default function AdminDashboardPage() {
                 {myArtikelCount}
               </h4>
             </div>
-            <div className="bg-emerald-50 p-3 rounded-xl">
-              <BookOpen className="w-8 h-8 text-emerald-500" />
+            <div className="sm:bg-emerald-50 p-3 rounded-xl">
+              <BookOpen className="hidden sm:block sm:size-8 sm:text-emerald-500" />
             </div>
           </div>
           <div className="bg-white p-6 rounded-2xl border-l-4 border-amber-500 shadow-sm flex items-center justify-between">
@@ -114,8 +114,8 @@ export default function AdminDashboardPage() {
                 {myPhotoCount}
               </h4>
             </div>
-            <div className="bg-amber-50 p-3 rounded-xl">
-              <ImageIcon className="w-8 h-8 text-amber-500" />
+            <div className="sm:bg-amber-50 p-3 rounded-xl">
+              <ImageIcon className="hidden sm:block sm:size-8 sm:text-amber-500" />
             </div>
           </div>
           <div className="bg-white p-6 rounded-2xl border-l-4 border-violet-500 shadow-sm flex items-center justify-between">
@@ -127,8 +127,8 @@ export default function AdminDashboardPage() {
                 {myVideoCount}
               </h4>
             </div>
-            <div className="bg-violet-50 p-3 rounded-xl">
-              <PlayCircle className="w-8 h-8 text-violet-500" />
+            <div className="sm:bg-violet-50 p-3 rounded-xl">
+              <PlayCircle className="hidden sm:block sm:size-8 sm:text-violet-500" />
             </div>
           </div>
         </div>
@@ -154,8 +154,8 @@ export default function AdminDashboardPage() {
                       {item.count}
                     </h4>
                   </div>
-                  <div className="bg-blue-50 p-3 rounded-xl">
-                    <Icon className="w-7 h-7 text-blue-500" />
+                  <div className="sm:bg-blue-50 p-3 rounded-xl">
+                    <Icon className="hidden sm:block sm:size-7 sm:text-blue-500" />
                   </div>
                 </div>
               );

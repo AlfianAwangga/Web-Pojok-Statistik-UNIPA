@@ -31,7 +31,7 @@ export default function ArtikelSection() {
             {artikelTerbaru.map((artikel) => (
               <div
                 key={artikel.id}
-                className="bg-white p-8 rounded-xl shadow-md border-t-4 border-purple-900 hover:-translate-y-1 transition-transform duration-300"
+                className="bg-white p-8 rounded-xl shadow-md border-t-4 border-purple-900 hover:-translate-y-1 active:-translate-y-1 transition-transform duration-300"
               >
                 <p className="text-xs font-semibold text-yellow-600 mb-3">
                   {artikel.publishDate}
@@ -48,7 +48,7 @@ export default function ArtikelSection() {
                   </span>
                   <button
                     onClick={() => handleOpenArticle(artikel.slug)}
-                    className="bg-white text-gray-600 p-2 rounded-lg border border-gray-600 hover:text-yellow-300 hover:bg-purple-900 text-sm font-bold flex items-center"
+                    className="bg-white text-gray-600 p-2 rounded-lg border border-gray-600 hover:text-yellow-300 hover:bg-purple-900 active:text-yellow-300 active:bg-purple-900 text-sm font-bold flex items-center"
                   >
                     Baca <ArrowRight className="w-4 h-4 ml-1" />
                   </button>

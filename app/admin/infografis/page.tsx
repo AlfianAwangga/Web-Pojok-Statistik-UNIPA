@@ -93,7 +93,9 @@ export default function InfografisAdmin() {
                 <th className="hidden md:table-cell w-1/6 px-6 py-4 font-semibold">
                   Kategori
                 </th>
-                <th className="w-1/6 px-6 py-4 font-semibold">Penulis</th>
+                <th className="hidden sm:table-cell w-1/6 px-6 py-4 font-semibold">
+                  Penulis
+                </th>
                 <th className="hidden md:table-cell w-1/6 px-6 py-4 font-semibold">
                   Tanggal
                 </th>
@@ -120,7 +122,7 @@ export default function InfografisAdmin() {
                     </p>
                   </td>
 
-                  <td className="px-6 py-4">
+                  <td className="hidden sm:table-cell px-6 py-4">
                     <p
                       className={`truncate text-sm font-semibold ${
                         item.author === currentUser
@@ -139,7 +141,7 @@ export default function InfografisAdmin() {
                     </p>
                   </td>
 
-                  <td className="px-6 py-4">
+                  <td className="px-4 py-4">
                     <div className="flex justify-end gap-2">
                       {item.author === currentUser ? (
                         <>

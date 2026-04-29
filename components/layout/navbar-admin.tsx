@@ -63,7 +63,7 @@ export default function NavbarAdmin() {
   return (
     <aside
       className={`
-        ${isCollapsed ? "w-20" : "w-64"}
+        ${isCollapsed ? "w-12 sm:w-16" : "w-64"}
         bg-purple-900 flex flex-col h-screen sticky top-0
         transition-all duration-300
       `}
@@ -71,7 +71,7 @@ export default function NavbarAdmin() {
       {/* Brand Area */}
       <div
         className={`
-    h-16 border-b border-purple-800 bg-purple-950
+    h-12 md:h-16 border-b border-purple-800 bg-purple-950
     flex items-center
     ${isCollapsed ? "justify-center px-2" : "justify-between px-4"}
   `}
@@ -87,7 +87,7 @@ export default function NavbarAdmin() {
               <h1 className="font-bold text-white tracking-wide text-sm leading-tight">
                 Backend
               </h1>
-              <p className="text-[10px] text-slate-400">
+              <p className="hidden sm:text-[10px] text-slate-400">
                 Pojok Statistik BPS x UNIPA
               </p>
             </div>
@@ -97,7 +97,7 @@ export default function NavbarAdmin() {
         {/* Toggle Button */}
         <button
           onClick={() => setIsCollapsed(!isCollapsed)}
-          className="p-2 rounded-lg hover:bg-purple-800 transition shrink-0"
+          className="p-2 rounded-lg hover:bg-purple-800 text-white transition shrink-0"
         >
           {isCollapsed ? (
             <PanelLeftOpen className="w-5 h-5" />
@@ -108,7 +108,7 @@ export default function NavbarAdmin() {
       </div>
 
       {/* Menu Items */}
-      <div className="flex-1 overflow-y-auto py-6 px-3 space-y-2">
+      <div className="flex-1 overflow-y-auto py-6 px-1 sm:px-3 space-y-2">
         {!isCollapsed && (
           <p className="px-3 text-xs font-bold text-yellow-200 uppercase tracking-wider mb-3">
             KONTEN WEB
@@ -131,7 +131,7 @@ export default function NavbarAdmin() {
                   ${
                     isActive
                       ? "bg-yellow-400 text-gray-700 shadow-md"
-                      : "hover:bg-purple-800 hover:text-white"
+                      : "hover:bg-purple-800 text-white"
                   }
                 `}
               >
@@ -151,12 +151,12 @@ export default function NavbarAdmin() {
         <button
           className={`
             w-full flex items-center rounded-lg text-sm font-medium
-            hover:bg-purple-800 hover:text-white transition-all
+            hover:bg-purple-800 text-white transition-all
             ${isCollapsed ? "justify-center px-2 py-3" : "px-4 py-3 gap-3"}
           `}
         >
           <Settings className="w-5 h-5 shrink-0" />
-          {!isCollapsed && <span>Pengaturan Akun</span>}
+          {!isCollapsed && <span>Akun</span>}
         </button>
       </div>
     </aside>

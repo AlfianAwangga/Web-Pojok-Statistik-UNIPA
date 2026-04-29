@@ -9,7 +9,7 @@ export default function UserLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <div>
+    <div className="min-h-screen bg-slate-100 font-sans">
       <Navbar />
       <main>{children}</main>
       <ScrollToTop />

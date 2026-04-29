@@ -169,7 +169,7 @@ export default function ArtikelPage() {
                         {/* Tombol Pemicu Buka Artikel */}
                         <button
                           onClick={() => handleOpenArticle(article.slug)}
-                          className="text-purple-700 font-bold text-sm flex items-center cursor-pointer hover:text-purple-900 group-hover:translate-x-1 transition-transform"
+                          className="text-purple-600 font-bold text-sm flex items-center cursor-pointer hover:text-purple-900 active:text-purple-900 group-hover:translate-x-1 transition-transform"
                         >
                           Baca Selengkapnya{" "}
                           <ChevronRightIcon className="w-4 h-4 ml-1" />

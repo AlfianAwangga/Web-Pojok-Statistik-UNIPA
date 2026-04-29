@@ -28,13 +28,13 @@ export default function HeroSection() {
             <div className="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4 justify-center md:justify-start">
               <a
                 href="#infografis"
-                className="bg-purple-900 hover:bg-purple-900 text-white font-bold py-3 px-8 rounded-lg shadow-lg transition-transform transform hover:-translate-y-1 flex items-center justify-center"
+                className="bg-purple-900 hover:bg-purple-900 active:bg-purple-900 text-white font-bold py-3 px-8 rounded-lg shadow-lg transition-transform transform hover:-translate-y-1 active:-translate-y-1 flex items-center justify-center"
               >
                 Lihat Karya Mahasiswa <ArrowRight className="w-5 h-5 ml-2" />
               </a>
               <a
                 href="#tentang"
-                className="bg-transparent border-2 border-purple-900 hover:bg-purple-100 hover:text-purple-900 text-purple-900 font-bold py-3 px-8 rounded-lg transition-colors flex items-center justify-center"
+                className="bg-transparent border-2 border-purple-900 active:bg-purple-100 active:text-purple-900 hover:bg-purple-100 hover:text-purple-900 text-purple-900 font-bold py-3 px-8 rounded-lg transition-colors flex items-center justify-center"
               >
                 Tentang Program
               </a>
