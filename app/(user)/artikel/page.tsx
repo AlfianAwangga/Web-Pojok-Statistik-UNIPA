@@ -6,9 +6,11 @@ import { filterData, getUniqueCategories } from "@/components/utils/search";
 import { artikelData } from "@/data/dummies";
 import {
   Calendar,
+  ChevronDown,
   ChevronLeft,
   ChevronRight,
   ChevronRight as ChevronRightIcon,
+  ChevronUp,
   Clock,
   Filter,
   Search,
@@ -23,6 +25,7 @@ export default function ArtikelPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedCategory, setSelectedCategory] = useState("Semua Kategori");
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
 
   const categories = getUniqueCategories(artikelData);
   const filteredData = filterData(artikelData, searchQuery, selectedCategory);
@@ -61,51 +64,71 @@ export default function ArtikelPage() {
       </div>
 
       <div className="max-w-7xl mx-auto px-4 mt-8 relative z-10 flex flex-col lg:flex-row gap-8">
-        {/* SIDEBAR KIRI: PANEL PENCARIAN & FILTER */}
+        {/* SIDEBAR KIRI */}
         <div className="w-full lg:w-1/4">
-          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 lg:sticky lg:top-24">
-            <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center">
-              <Filter className="w-5 h-5 mr-2 text-purple-600" /> Filter Artikel
-            </h3>
-
-            <div className="relative mb-6">
-              <Search className="absolute left-3 top-3.5 h-5 w-5 text-gray-400" />
-              <input
-                type="text"
-                placeholder="Cari judul artikel..."
-                className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 focus:ring-2 focus:ring-gray-900 focus:outline-none transition-all"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-              />
-            </div>
-
-            <div className="border-t border-gray-100 pt-6">
-              <h4 className="text-sm font-bold text-gray-900 mb-4 uppercase tracking-wider">
-                Pilih Kategori
-              </h4>
-              <div className="flex flex-col gap-2">
-                {categories.map((cat) => (
-                  <button
-                    key={cat}
-                    onClick={() => setSelectedCategory(cat)}
-                    className={`text-sm font-semibold py-2.5 px-4 rounded-xl border text-left transition-all ${selectedCategory.toLowerCase() === cat.toLowerCase() ? "bg-purple-900 text-white border-purple-900 shadow-md" : "bg-white text-gray-600 border-gray-200 hover:bg-purple-50 hover:text-purple-700 hover:border-purple-200"}`}
-                  >
-                    {cat}
-                  </button>
-                ))}
-                {searchQuery && (
-                  <button
-                    onClick={() => setSearchQuery("")}
-                    className="text-sm font-bold text-red-500 mt-2 hover:bg-red-50 py-2.5 px-4 rounded-xl transition-colors text-center border border-transparent"
-                  >
-                    Reset Pencarian
-                  </button>
-                )}
+          {/* WRAPPER AGAR MENYATU */}
+          <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm lg:border-gray-100">
+            {/* TOGGLE BUTTON MOBILE */}
+            <button
+              onClick={() => setIsFilterOpen(!isFilterOpen)}
+              className="flex w-full items-center justify-between px-5 py-4 font-bold text-gray-900 transition-colors hover:bg-gray-50 lg:hidden"
+            >
+              <span className="flex items-center">
+                <Filter className="w-5 h-5 mr-2 text-purple-600" /> Filter
+                Artikel
+              </span>
+              {isFilterOpen ? (
+                <ChevronUp className="h-5 w-5 text-purple-600" />
+              ) : (
+                <ChevronDown className="h-5 w-5 text-purple-600" />
+              )}
+            </button>
+            {/* FILTER CONTENT */}
+            <div
+              className={`px-5 pb-5 ${isFilterOpen ? "block border-t border-gray-100" : "hidden"}  lg:block lg:border-t-0 lg:px-6 lg:pb-6`}
+            >
+              {/* DESKTOP TITLE */}
+              <h3 className="hidden lg:flex text-lg font-bold text-gray-900 mb-4 items-center">
+                <Filter className="w-5 h-5 mr-2 text-purple-600" /> Filter
+                Artikel
+              </h3>
+              <div className="relative mb-6 pt-4 lg:pt-0">
+                <Search className="absolute left-3 top-7 lg:top-3.5 h-5 w-5 text-gray-400" />
+                <input
+                  type="text"
+                  placeholder="Cari judul artikel..."
+                  className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 focus:ring-2 focus:ring-gray-900 focus:outline-none transition-all"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                />
+              </div>
+              <div className="border-t border-gray-100 pt-6">
+                <h4 className="text-sm font-bold text-gray-900 mb-4 uppercase tracking-wider">
+                  Pilih Kategori
+                </h4>
+                <div className="flex flex-col gap-2">
+                  {categories.map((cat) => (
+                    <button
+                      key={cat}
+                      onClick={() => setSelectedCategory(cat)}
+                      className={`text-sm font-semibold py-2.5 px-4 rounded-xl border text-left transition-all ${selectedCategory.toLowerCase() === cat.toLowerCase() ? "bg-purple-900 text-white border-purple-900 shadow-md" : "bg-white text-gray-600 border-gray-200 hover:bg-purple-50 hover:text-purple-700 hover:border-purple-200"}`}
+                    >
+                      {cat}
+                    </button>
+                  ))}
+                  {searchQuery && (
+                    <button
+                      onClick={() => setSearchQuery("")}
+                      className="text-sm font-bold text-red-500 mt-2 hover:bg-red-50 py-2.5 px-4 rounded-xl transition-colors text-center border border-transparent"
+                    >
+                      Reset Pencarian
+                    </button>
+                  )}
+                </div>
               </div>
             </div>
           </div>
         </div>
-
         {/* KONTEN KANAN: GRID ARTIKEL */}
         <div className="w-full lg:w-3/4">
           <ScrollAnimation>

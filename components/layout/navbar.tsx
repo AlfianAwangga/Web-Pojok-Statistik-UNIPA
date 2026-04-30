@@ -66,6 +66,12 @@ export default function Navbar() {
                 </Link>
               );
             })}
+            <Link
+              href="/admin"
+              className="ml-6 rounded-lg bg-purple-700 px-5 py-3 text-sm font-bold text-white transition hover:bg-purple-600 active:bg-purple-600"
+            >
+              Login
+            </Link>
           </div>
 
           {/* Mobile Menu Button */}
@@ -94,7 +100,7 @@ export default function Navbar() {
               <Link
                 key={item.name}
                 href={item.href}
-                className={`flex items-center gap-3 px-8 py-3 rounded-lg border-b-2 border-gray-100 transition-all
+                className={`flex items-center gap-3 px-8 py-3 rounded-lg transition-all
               ${
                 isActive
                   ? "text-yellow-400"
@@ -105,6 +111,12 @@ export default function Navbar() {
               </Link>
             );
           })}
+          <Link
+            href="/admin"
+            className="ml-6 rounded-lg bg-purple-700 px-5 py-3 text-sm font-bold text-white transition hover:bg-purple-600 active:bg-purple-600"
+          >
+            Login
+          </Link>
         </div>
       )}
     </nav>

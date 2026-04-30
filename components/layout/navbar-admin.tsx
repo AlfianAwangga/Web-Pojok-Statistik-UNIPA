@@ -55,7 +55,7 @@ export default function NavbarAdmin() {
     },
     {
       name: "Galeri",
-      href: "#",
+      href: "/admin/foto",
       icon: ImageIcon,
     },
   ];
@@ -63,7 +63,7 @@ export default function NavbarAdmin() {
   return (
     <aside
       className={`
-        ${isCollapsed ? "w-12 sm:w-16" : "w-64"}
+        ${isCollapsed ? "w-12 sm:w-16" : "w-44 sm:w-64"}
         bg-purple-900 flex flex-col h-screen sticky top-0
         transition-all duration-300
       `}

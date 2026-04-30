@@ -86,6 +86,7 @@ export interface FotoModel {
   caption: string;
   lokasi: string;
   tanggal: string;
+  uploader: string;
 }
 
 export interface VideoModel {
@@ -196,6 +197,7 @@ export const fotoData: FotoModel[] = [
     caption: "Dokumentasi 1",
     lokasi: "Ruangan 1",
     tanggal: "12 April 2026",
+    uploader: "uploader 1",
   },
   {
     id: 2,
@@ -203,6 +205,7 @@ export const fotoData: FotoModel[] = [
     caption: "Dokumentasi 2",
     lokasi: "Ruangan 2",
     tanggal: "05 April 2026",
+    uploader: "uploader 1",
   },
   {
     id: 3,
@@ -210,6 +213,7 @@ export const fotoData: FotoModel[] = [
     caption: "Dokumentasi 3",
     lokasi: "Ruangan 3",
     tanggal: "28 Mar 2026",
+    uploader: "uploader 1",
   },
   {
     id: 4,
@@ -217,6 +221,7 @@ export const fotoData: FotoModel[] = [
     caption: "Dokumentasi 4",
     lokasi: "Ruangan 4",
     tanggal: "20 Mar 2026",
+    uploader: "uploader 1",
   },
   {
     id: 5,
@@ -224,6 +229,7 @@ export const fotoData: FotoModel[] = [
     caption: "Dokumentasi 5",
     lokasi: "Ruangan 5",
     tanggal: "10 Mar 2026",
+    uploader: "uploader 1",
   },
   {
     id: 6,
@@ -231,6 +237,7 @@ export const fotoData: FotoModel[] = [
     caption: "Dokumentasi 6",
     lokasi: "Ruangan 6",
     tanggal: "01 Mar 2026",
+    uploader: "uploader 1",
   },
 ];
 

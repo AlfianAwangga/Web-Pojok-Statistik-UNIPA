@@ -1,38 +1,41 @@
 "use client";
 
+import { useMemo, useState } from "react";
 import FormModal from "@/components/ui/form-modal";
-import {
-  filterTableData,
-  getUniqueCategories1,
-} from "@/components/utils/search";
-import { infografisData } from "@/data/dummies";
 import {
   CheckCircle,
   Edit,
+  Image as ImageIcon,
   Plus,
   Search,
   Trash2,
   UploadCloud,
 } from "lucide-react";
-import { useMemo, useState } from "react";
+import {
+  filterTableData,
+  getUniqueCategories1,
+} from "@/components/utils/search";
+import { fotoData } from "@/data/dummies";
 
 interface FormData {
   title: string;
-  category: string;
+  location: string;
   description: string;
+  imageUrl: string;
 }
 
-const categories = getUniqueCategories1(infografisData);
+// const categories = getUniqueCategories1(fotoData);
 
-export default function InfografisAdmin() {
+export default function DokumentasiAdmin() {
   const currentUser = "Author 1";
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [formData, setFormData] = useState<FormData>({
     title: "",
-    category: categories[0],
+    location: "",
     description: "",
+    imageUrl: "",
   });
 
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -40,11 +43,7 @@ export default function InfografisAdmin() {
   const [uploading, setUploading] = useState(false);
 
   const filteredData = useMemo(() => {
-    return filterTableData(infografisData, searchTerm, [
-      "title",
-      "category",
-      "author",
-    ]);
+    return filterTableData(fotoData, searchTerm, ["caption", "lokasi"]);
   }, [searchTerm]);
 
   const handleInputChange = (field: keyof FormData, value: string) => {
@@ -67,31 +66,31 @@ export default function InfografisAdmin() {
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h2 className="text-2xl font-bold text-slate-800">
-            Database Infografis
+            Database Foto Dokumentasi
           </h2>
           <p className="text-sm text-slate-500">
-            Kelola karyamu dan pantau publikasi rekan-rekan magang lainnya.
+            Kelola dokumentasi kegiatan dan publikasi galeri website.
           </p>
         </div>
 
         <button
           onClick={() => setIsModalOpen(true)}
-          className="flex items-center rounded-lg bg-purple-800 px-4 py-2.5 text-sm font-bold text-white shadow-sm transition hover:bg-purple-700"
+          className="flex items-center rounded-lg bg-purple-800 px-4 py-2.5 text-sm font-bold text-white shadow-sm transition hover:bg-purple-700 active:bg-purple-700"
         >
           <Plus className="mr-2 h-4 w-4" />
-          Unggah Karya Baru
+          Tambah Dokumentasi
         </button>
       </div>
 
       <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm text-slate-900">
-        <div className="flex items-center justify-between border-b border-slate-100 bg-slate-50 p-4">
+        <div className="border-b border-slate-100 bg-slate-50 p-4">
           <div className="relative w-full max-w-xs">
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
             <input
               type="text"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              placeholder="Cari karya..."
+              placeholder="Cari dokumentasi..."
               className="w-full rounded-lg border border-slate-200 py-2 pl-9 pr-4 text-sm outline-none transition focus:ring-2 focus:ring-purple-500"
             />
           </div>
@@ -101,15 +100,12 @@ export default function InfografisAdmin() {
           <table className="w-full table-fixed border-collapse text-left">
             <thead>
               <tr className="border-b border-slate-200 bg-slate-50 text-xs uppercase tracking-wider text-slate-500">
-                <th className="w-2/5 px-6 py-4 font-semibold">Judul</th>
+                <th className="w-2/5 px-6 py-4 font-semibold">Judul Foto</th>
                 <th className="hidden md:table-cell w-1/6 px-6 py-4 font-semibold">
-                  Kategori
+                  Lokasi
                 </th>
-                <th className="hidden sm:table-cell w-1/6 px-6 py-4 font-semibold">
+                <th className="hidden md:table-cell w-1/6 px-6 py-4 font-semibold">
                   Penulis
-                </th>
-                <th className="hidden md:table-cell w-1/6 px-6 py-4 font-semibold">
-                  Tanggal
                 </th>
                 <th className="w-1/6 px-6 py-4 text-right font-semibold">
                   Aksi
@@ -121,41 +117,31 @@ export default function InfografisAdmin() {
               {filteredData.map((item) => (
                 <tr key={item.id} className="transition hover:bg-slate-50">
                   <td className="px-6 py-4">
-                    <div className="space-y-1">
-                      <p className="truncate text-sm font-bold text-slate-800">
-                        {item.title}
-                      </p>
-                    </div>
-                  </td>
-
-                  <td className="hidden md:table-cell px-6 py-4">
-                    <p className="truncate text-sm text-slate-600">
-                      {item.category}
+                    <p className="truncate text-sm font-bold text-slate-800">
+                      {item.caption}
                     </p>
                   </td>
-
+                  <td className="hidden sm:table-cell px-6 py-4">
+                    <p className="truncate text-sm text-slate-600">
+                      {item.lokasi}
+                    </p>
+                  </td>
                   <td className="hidden sm:table-cell px-6 py-4">
                     <p
                       className={`truncate text-sm font-semibold ${
-                        item.author === currentUser
+                        item.uploader === currentUser
                           ? "text-purple-600"
                           : "text-slate-600"
                       }`}
                     >
-                      {item.author}
-                      {item.author === currentUser}
+                      {item.uploader}
+                      {item.uploader === currentUser}
                     </p>
                   </td>
 
-                  <td className="hidden md:table-cell px-6 py-4">
-                    <p className="truncate text-sm text-slate-600">
-                      {item.date}
-                    </p>
-                  </td>
-
-                  <td className="px-4 py-4">
+                  <td className="px-6 py-4">
                     <div className="flex justify-end gap-2">
-                      {item.author === currentUser ? (
+                      {item.uploader === currentUser ? (
                         <>
                           <button className="rounded-md p-2 text-blue-600 transition hover:bg-blue-50">
                             <Edit className="h-4 w-4" />
@@ -178,62 +164,75 @@ export default function InfografisAdmin() {
         </div>
       </div>
 
-      {/* Form Tambah Infografis */}
       <FormModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
-        title="Unggah Karya Infografis"
+        title="Tambah Foto Dokumentasi"
       >
         <div className="space-y-5">
           <div className="flex items-start rounded-lg border border-emerald-200 bg-emerald-50 p-4">
             <CheckCircle className="mr-2 mt-0.5 h-5 w-5 shrink-0 text-emerald-500" />
             <p className="text-xs leading-relaxed text-emerald-800">
-              Infografis yang kamu unggah di sini akan{" "}
-              <strong>langsung terpublikasi</strong>
-              &nbsp;ke halaman utama website publik Pojok Statistik.
+              Dokumentasi yang ditambahkan akan langsung tampil pada galeri
+              publik website.
             </p>
           </div>
 
           <div>
             <label className="mb-1 block text-sm font-semibold text-slate-700">
-              Judul Karya Infografis
+              Judul Dokumentasi
             </label>
             <input
               type="text"
               value={formData.title}
               onChange={(e) => handleInputChange("title", e.target.value)}
-              placeholder="Contoh: Infografis Kemiskinan Ekstrem"
-              className="w-full rounded-lg border border-slate-200 px-4 py-2.5 outline-none transition focus:border-purple-500 focus:ring-2 focus:ring-purple-500 text-slate-700"
+              placeholder="Contoh: Kegiatan Pembinaan Statistik Sektoral"
+              className="w-full rounded-lg border border-slate-200 px-4 py-2.5 text-slate-700 outline-none transition focus:border-purple-500 focus:ring-2 focus:ring-purple-500"
             />
           </div>
 
-          <div>
-            <label className="mb-1 block text-sm font-semibold text-slate-700">
-              Kategori Utama
-            </label>
-            <select
-              value={formData.category}
-              onChange={(e) => handleInputChange("category", e.target.value)}
-              className="w-full rounded-lg border border-slate-200 px-4 py-2.5 outline-none focus:ring-2 focus:ring-purple-500 text-slate-700"
-            >
-              {categories.map((category) => (
-                <option key={category}>{category}</option>
-              ))}
-            </select>
-          </div>
+          {/* <div className="grid gap-4 md:grid-cols-2"> */}
+          {/* <div>
+              <label className="mb-1 block text-sm font-semibold text-slate-700">
+                Kategori
+              </label>
+              <select
+                value={formData.category}
+                onChange={(e) => handleInputChange("category", e.target.value)}
+                className="w-full rounded-lg border border-slate-200 px-4 py-2.5 text-slate-700 outline-none focus:ring-2 focus:ring-purple-500"
+              >
+                {categories.map((category) => (
+                  <option key={category}>{category}</option>
+                ))}
+              </select>
+            </div> */}
 
           <div>
             <label className="mb-1 block text-sm font-semibold text-slate-700">
-              Deskripsi Infografis
+              Lokasi Kegiatan
+            </label>
+            <input
+              type="text"
+              value={formData.location}
+              onChange={(e) => handleInputChange("location", e.target.value)}
+              placeholder="Contoh: Manokwari"
+              className="w-full rounded-lg border border-slate-200 px-4 py-2.5 text-slate-700 outline-none transition focus:border-purple-500 focus:ring-2 focus:ring-purple-500"
+            />
+          </div>
+          {/* </div> */}
+
+          {/* <div>
+            <label className="mb-1 block text-sm font-semibold text-slate-700">
+              Deskripsi Singkat
             </label>
             <textarea
               rows={4}
               value={formData.description}
               onChange={(e) => handleInputChange("description", e.target.value)}
-              placeholder="Ceritakan interpretasi dari infografis yang kamu buat..."
-              className="w-full resize-none rounded-lg border border-slate-200 px-4 py-2.5 outline-none focus:ring-2 focus:ring-purple-500 text-slate-700"
+              placeholder="Tuliskan deskripsi singkat dokumentasi kegiatan..."
+              className="w-full resize-none rounded-lg border border-slate-200 px-4 py-2.5 text-slate-700 outline-none focus:ring-2 focus:ring-purple-500"
             />
-          </div>
+          </div> */}
 
           <div>
             <label className="mb-1 block text-sm font-semibold text-slate-700">
