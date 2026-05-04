@@ -1,44 +1,74 @@
 "use client";
 
+import { Column, DataTable } from "@/components/ui/data-table";
 import FormModal from "@/components/ui/form-modal";
 import {
   filterTableData,
   getUniqueCategories1,
 } from "@/components/utils/search";
-import { infografisData } from "@/data/dummies";
-import {
-  CheckCircle,
-  Edit,
-  Plus,
-  Search,
-  Trash2,
-  UploadCloud,
-} from "lucide-react";
+import { infografisData, InfografisModel } from "@/data/dummies";
+import { CheckCircle, Plus, Search, UploadCloud } from "lucide-react";
 import { useMemo, useState } from "react";
 
+// INTERFACES
 interface FormData {
   title: string;
   category: string;
   description: string;
 }
-
+// Mengambil daftar kategori unik dari data dummy untuk dropdown form
 const categories = getUniqueCategories1(infografisData);
 
 export default function InfografisAdmin() {
-  const currentUser = "Author 1";
+  // KONFIGURASI
+  const currentUser = "Author 1"; // Simulasi user yang sedang login
+  const ITEMS_PER_PAGES = 10; // Konfigurasi jumlah data per halaman pagination
 
+  // STATES
+  // States untuk UI
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
+
+  // State untuk Data Form
   const [formData, setFormData] = useState<FormData>({
     title: "",
     category: categories[0],
     description: "",
   });
 
+  // State untuk Upload File/Gambar
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
 
+  // KONFIGURASI TABEL
+  // cek itemnya milik user atau bukan
+  const isAuthor = (item: InfografisModel) => item.author === currentUser;
+
+  // Struktur kolom untuk komponen DataTable
+  const kolomInfografis: Column<any>[] = [
+    { header: "Judul Infografis", accessorKey: "title" },
+    { header: "Kategori", accessorKey: "category", hiddenOnMobile: true },
+    {
+      header: "Uploader",
+      accessorKey: "author",
+      hiddenOnMobile: true,
+      cell: (item) => (
+        <span
+          className={
+            isAuthor(item)
+              ? "text-purple-600 font-semibold" // Warna ungu dan tebal jika milik sendiri
+              : "text-gray-600" // Warna abu-abu standar jika milik orang lain
+          }
+        >
+          {item.author} {isAuthor(item)}
+        </span>
+      ),
+    },
+    { header: "Tanggal", accessorKey: "date", hiddenOnMobile: true },
+  ];
+
+  // Data tabel yang sudah difilter
   const filteredData = useMemo(() => {
     return filterTableData(infografisData, searchTerm, [
       "title",
@@ -47,6 +77,11 @@ export default function InfografisAdmin() {
     ]);
   }, [searchTerm]);
 
+  // EVENT HANDLERS
+  const handleEdit = (item: InfografisModel) =>
+    console.log("Edit Infografis:", item.id);
+  const handleDelete = (item: InfografisModel) =>
+    console.log("Hapus Infografis:", item.id);
   const handleInputChange = (field: keyof FormData, value: string) => {
     setFormData((prev) => ({
       ...prev,
@@ -56,14 +91,13 @@ export default function InfografisAdmin() {
 
   const handleFileChange = (file: File) => {
     setSelectedFile(file);
-
-    // preview image
     const preview = URL.createObjectURL(file);
     setPreviewUrl(preview);
   };
 
   return (
     <div className="space-y-6 animate-in fade-in duration-300">
+      {/* HEADER DAN BUTTON TAMBAH */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h2 className="text-2xl font-bold text-slate-800">
@@ -83,6 +117,7 @@ export default function InfografisAdmin() {
         </button>
       </div>
 
+      {/* BAGIAN TABEL & PENCARIAN */}
       <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm text-slate-900">
         <div className="flex items-center justify-between border-b border-slate-100 bg-slate-50 p-4">
           <div className="relative w-full max-w-xs">
@@ -97,88 +132,20 @@ export default function InfografisAdmin() {
           </div>
         </div>
 
+        {/* KOMPONEN TABEL */}
         <div className="overflow-x-auto">
-          <table className="w-full table-fixed border-collapse text-left">
-            <thead>
-              <tr className="border-b border-slate-200 bg-slate-50 text-xs uppercase tracking-wider text-slate-500">
-                <th className="w-2/5 px-6 py-4 font-semibold">Judul</th>
-                <th className="hidden md:table-cell w-1/6 px-6 py-4 font-semibold">
-                  Kategori
-                </th>
-                <th className="hidden sm:table-cell w-1/6 px-6 py-4 font-semibold">
-                  Penulis
-                </th>
-                <th className="hidden md:table-cell w-1/6 px-6 py-4 font-semibold">
-                  Tanggal
-                </th>
-                <th className="w-1/6 px-6 py-4 text-right font-semibold">
-                  Aksi
-                </th>
-              </tr>
-            </thead>
-
-            <tbody className="divide-y divide-slate-100">
-              {filteredData.map((item) => (
-                <tr key={item.id} className="transition hover:bg-slate-50">
-                  <td className="px-6 py-4">
-                    <div className="space-y-1">
-                      <p className="truncate text-sm font-bold text-slate-800">
-                        {item.title}
-                      </p>
-                    </div>
-                  </td>
-
-                  <td className="hidden md:table-cell px-6 py-4">
-                    <p className="truncate text-sm text-slate-600">
-                      {item.category}
-                    </p>
-                  </td>
-
-                  <td className="hidden sm:table-cell px-6 py-4">
-                    <p
-                      className={`truncate text-sm font-semibold ${
-                        item.author === currentUser
-                          ? "text-purple-600"
-                          : "text-slate-600"
-                      }`}
-                    >
-                      {item.author}
-                      {item.author === currentUser}
-                    </p>
-                  </td>
-
-                  <td className="hidden md:table-cell px-6 py-4">
-                    <p className="truncate text-sm text-slate-600">
-                      {item.date}
-                    </p>
-                  </td>
-
-                  <td className="px-4 py-4">
-                    <div className="flex justify-end gap-2">
-                      {item.author === currentUser ? (
-                        <>
-                          <button className="rounded-md p-2 text-blue-600 transition hover:bg-blue-50">
-                            <Edit className="h-4 w-4" />
-                          </button>
-                          <button className="rounded-md p-2 text-red-500 transition hover:bg-red-50">
-                            <Trash2 className="h-4 w-4" />
-                          </button>
-                        </>
-                      ) : (
-                        <span className="text-xs italic text-slate-400">
-                          Hanya lihat
-                        </span>
-                      )}
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+          <DataTable
+            columns={kolomInfografis}
+            data={filteredData}
+            onEdit={handleEdit}
+            onDelete={handleDelete}
+            canAction={isAuthor}
+            withPagination={true}
+            itemsPerPage={ITEMS_PER_PAGES}
+          />
         </div>
       </div>
-
-      {/* Form Tambah Infografis */}
+      {/* FORM TAMBAH INFOGRAFIS */}
       <FormModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
@@ -262,6 +229,8 @@ export default function InfografisAdmin() {
                 </div>
               )}
             </div>
+
+            {/* Sembunyikan Input saat gambar dipilih */}
             <input
               id="fileInput"
               type="file"

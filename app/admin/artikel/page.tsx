@@ -1,24 +1,24 @@
 "use client";
 
+import { Column, DataTable } from "@/components/ui/data-table";
 import FormModal from "@/components/ui/form-modal";
 import {
   filterTableData,
   getUniqueCategories1,
 } from "@/components/utils/search";
-import { artikelData } from "@/data/dummies";
+import { artikelData, ArtikelModel } from "@/data/dummies";
 import {
   CheckCircle,
-  Edit,
+  FileText,
   Plus,
   Search,
-  Trash2,
-  UploadCloud,
-  FileText,
   Star,
   Tag,
+  Trash2,
 } from "lucide-react";
 import { useMemo, useState } from "react";
 
+// INTERFACES
 interface ArticleSection {
   id: number;
   type: "subtitle" | "paragraph" | "highlight" | "quote";
@@ -35,14 +35,20 @@ interface FormData {
   sections: ArticleSection[];
 }
 
+// Mengambil daftar kategori unik dari data dummy untuk dropdown form
 const categories = getUniqueCategories1(artikelData);
 
 export default function ArtikelAdmin() {
-  const currentUser = "Author 1";
+  // KONFIGURASI
+  const currentUser = "Author 1"; // Simulasi user yang sedang login
+  const ITEMS_PER_PAGES = 10; // Konfigurasi jumlah data per halaman pagination
 
+  // STATES
+  // States untuk UI
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
 
+  // State untuk form artikel
   const [formData, setFormData] = useState<FormData>({
     title: "",
     category: categories[0] || "Umum",
@@ -59,6 +65,34 @@ export default function ArtikelAdmin() {
     ],
   });
 
+  // KONFIGURASI TABEL
+  // cek itemnya milik user atau bukan
+  const isAuthor = (item: ArtikelModel) => item.author === currentUser;
+
+  // Struktur kolom untuk komponen DataTable
+  const kolomArtikel: Column<any>[] = [
+    { header: "Judul Artikel", accessorKey: "title" },
+    { header: "Kategori", accessorKey: "category", hiddenOnMobile: true },
+    {
+      header: "Penulis",
+      accessorKey: "author",
+      hiddenOnMobile: true,
+      cell: (item) => (
+        <span
+          className={
+            isAuthor(item)
+              ? "text-purple-600 font-semibold" // Warna ungu dan tebal jika milik sendiri
+              : "text-gray-600" // Warna abu-abu standar jika milik orang lain
+          }
+        >
+          {item.author} {isAuthor(item)}
+        </span>
+      ),
+    },
+    { header: "Tanggal", accessorKey: "publishDate", hiddenOnMobile: true },
+  ];
+
+  // Data tabel yang sudah difilter
   const filteredData = useMemo(() => {
     return filterTableData(artikelData, searchTerm, [
       "title",
@@ -67,6 +101,7 @@ export default function ArtikelAdmin() {
     ]);
   }, [searchTerm]);
 
+  // Handler form section
   const addSection = () => {
     setFormData((prev) => ({
       ...prev,
@@ -116,6 +151,12 @@ export default function ArtikelAdmin() {
     }));
   };
 
+  // Handler Button
+  const handleEdit = (item: ArtikelModel) =>
+    console.log("Edit Infografis:", item.id);
+  const handleDelete = (item: ArtikelModel) =>
+    console.log("Hapus Infografis:", item.id);
+
   return (
     <div className="space-y-6 animate-in fade-in duration-300">
       {/* Header */}
@@ -154,86 +195,18 @@ export default function ArtikelAdmin() {
         </div>
 
         <div className="overflow-x-auto">
-          <table className="w-full table-fixed border-collapse text-left">
-            <thead>
-              <tr className="border-b border-slate-200 bg-slate-50 text-xs uppercase tracking-wider text-slate-500">
-                <th className="w-2/5 px-6 py-4 font-semibold">Judul</th>
-                <th className="hidden md:table-cell w-1/6 px-6 py-4 font-semibold">
-                  Kategori
-                </th>
-                <th className="hidden sm:table-cell w-1/6 px-6 py-4 font-semibold">
-                  Penulis
-                </th>
-                <th className="hidden md:table-cell w-1/6 px-6 py-4 font-semibold">
-                  Tanggal
-                </th>
-                <th className="w-1/6 px-6 py-4 text-right font-semibold">
-                  Aksi
-                </th>
-              </tr>
-            </thead>
-
-            <tbody className="divide-y divide-slate-100">
-              {filteredData.map((item) => (
-                <tr key={item.id} className="transition hover:bg-slate-50">
-                  <td className="px-6 py-4">
-                    <div className="space-y-1">
-                      <p className="truncate text-sm font-bold text-slate-800">
-                        {item.title}
-                      </p>
-                      <p className="truncate text-xs text-slate-400">
-                        {item.excerpt}
-                      </p>
-                    </div>
-                  </td>
-
-                  <td className="hidden md:table-cell px-6 py-4">
-                    <p className="truncate text-sm text-slate-600">
-                      {item.category}
-                    </p>
-                  </td>
-
-                  <td className="hidden sm:table-cell px-6 py-4">
-                    <p
-                      className={`truncate text-sm font-semibold ${
-                        item.author === currentUser
-                          ? "text-purple-600"
-                          : "text-slate-600"
-                      }`}
-                    >
-                      {item.author}
-                      {item.author === currentUser}
-                    </p>
-                  </td>
-
-                  <td className="hidden md:table-cell px-6 py-4">
-                    <p className="truncate text-sm text-slate-600">
-                      {item.publishDate}
-                    </p>
-                  </td>
-
-                  <td className="px-4 py-4">
-                    <div className="flex justify-end gap-2">
-                      {item.author === currentUser ? (
-                        <>
-                          <button className="rounded-md p-2 text-blue-600 transition hover:bg-blue-50">
-                            <Edit className="h-4 w-4" />
-                          </button>
-                          <button className="rounded-md p-2 text-red-500 transition hover:bg-red-50">
-                            <Trash2 className="h-4 w-4" />
-                          </button>
-                        </>
-                      ) : (
-                        <span className="text-xs italic text-slate-400">
-                          Hanya lihat
-                        </span>
-                      )}
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+          {/* KOMPONEN TABEL */}
+          <div className="overflow-x-auto">
+            <DataTable
+              columns={kolomArtikel}
+              data={filteredData}
+              onEdit={handleEdit}
+              onDelete={handleDelete}
+              canAction={isAuthor}
+              withPagination={true}
+              itemsPerPage={ITEMS_PER_PAGES}
+            />
+          </div>
         </div>
       </div>
 

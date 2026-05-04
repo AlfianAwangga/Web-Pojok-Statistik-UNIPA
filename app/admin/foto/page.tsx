@@ -1,22 +1,20 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { Column, DataTable } from "@/components/ui/data-table";
 import FormModal from "@/components/ui/form-modal";
+import { filterTableData } from "@/components/utils/search";
+import { fotoData, FotoModel } from "@/data/dummies";
 import {
   CheckCircle,
   Edit,
-  Image as ImageIcon,
   Plus,
   Search,
   Trash2,
   UploadCloud,
 } from "lucide-react";
-import {
-  filterTableData,
-  getUniqueCategories1,
-} from "@/components/utils/search";
-import { fotoData } from "@/data/dummies";
+import { useMemo, useState } from "react";
 
+// INTERFACES
 interface FormData {
   title: string;
   location: string;
@@ -24,13 +22,17 @@ interface FormData {
   imageUrl: string;
 }
 
-// const categories = getUniqueCategories1(fotoData);
-
 export default function DokumentasiAdmin() {
-  const currentUser = "Author 1";
+  // KONFIGURASI
+  const currentUser = "Author 1"; // Simulasi user yang sedang login
+  const ITEMS_PER_PAGES = 10; // Konfigurasi jumlah data per halaman pagination
 
+  // STATES
+  // States untuk UI
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
+
+  // State untuk form artikel
   const [formData, setFormData] = useState<FormData>({
     title: "",
     location: "",
@@ -38,13 +40,48 @@ export default function DokumentasiAdmin() {
     imageUrl: "",
   });
 
+  // State untuk Upload File/Gambar
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
 
+  // KONFIGURASI TABEL
+  // cek itemnya milik user atau bukan
+  const isAuthor = (item: FotoModel) => item.uploader === currentUser;
+
+  // Struktur kolom untuk komponen DataTable
+  const kolomFoto: Column<any>[] = [
+    { header: "Nama Foto", accessorKey: "caption" },
+    { header: "Lokasi", accessorKey: "lokasi", hiddenOnMobile: true },
+    {
+      header: "Uploader",
+      accessorKey: "uploader",
+      hiddenOnMobile: true,
+      cell: (item) => (
+        <span
+          className={
+            isAuthor(item)
+              ? "text-purple-600 font-semibold" // Warna ungu dan tebal jika milik sendiri
+              : "text-gray-600" // Warna abu-abu standar jika milik orang lain
+          }
+        >
+          {item.uploader} {isAuthor(item)}
+        </span>
+      ),
+    },
+    { header: "Tanggal", accessorKey: "tanggal", hiddenOnMobile: true },
+  ];
+
+  // Data tabel yang sudah difilter
   const filteredData = useMemo(() => {
     return filterTableData(fotoData, searchTerm, ["caption", "lokasi"]);
   }, [searchTerm]);
+
+  // EVENT HANDLERS
+  const handleEdit = (item: FotoModel) =>
+    console.log("Edit Infografis:", item.id);
+  const handleDelete = (item: FotoModel) =>
+    console.log("Hapus Infografis:", item.id);
 
   const handleInputChange = (field: keyof FormData, value: string) => {
     setFormData((prev) => ({
@@ -97,70 +134,16 @@ export default function DokumentasiAdmin() {
         </div>
 
         <div className="overflow-x-auto">
-          <table className="w-full table-fixed border-collapse text-left">
-            <thead>
-              <tr className="border-b border-slate-200 bg-slate-50 text-xs uppercase tracking-wider text-slate-500">
-                <th className="w-2/5 px-6 py-4 font-semibold">Judul Foto</th>
-                <th className="hidden md:table-cell w-1/6 px-6 py-4 font-semibold">
-                  Lokasi
-                </th>
-                <th className="hidden md:table-cell w-1/6 px-6 py-4 font-semibold">
-                  Penulis
-                </th>
-                <th className="w-1/6 px-6 py-4 text-right font-semibold">
-                  Aksi
-                </th>
-              </tr>
-            </thead>
-
-            <tbody className="divide-y divide-slate-100">
-              {filteredData.map((item) => (
-                <tr key={item.id} className="transition hover:bg-slate-50">
-                  <td className="px-6 py-4">
-                    <p className="truncate text-sm font-bold text-slate-800">
-                      {item.caption}
-                    </p>
-                  </td>
-                  <td className="hidden sm:table-cell px-6 py-4">
-                    <p className="truncate text-sm text-slate-600">
-                      {item.lokasi}
-                    </p>
-                  </td>
-                  <td className="hidden sm:table-cell px-6 py-4">
-                    <p
-                      className={`truncate text-sm font-semibold ${
-                        item.uploader === currentUser
-                          ? "text-purple-600"
-                          : "text-slate-600"
-                      }`}
-                    >
-                      {item.uploader}
-                      {item.uploader === currentUser}
-                    </p>
-                  </td>
-
-                  <td className="px-6 py-4">
-                    <div className="flex justify-end gap-2">
-                      {item.uploader === currentUser ? (
-                        <>
-                          <button className="rounded-md p-2 text-blue-600 transition hover:bg-blue-50">
-                            <Edit className="h-4 w-4" />
-                          </button>
-                          <button className="rounded-md p-2 text-red-500 transition hover:bg-red-50">
-                            <Trash2 className="h-4 w-4" />
-                          </button>
-                        </>
-                      ) : (
-                        <span className="text-xs italic text-slate-400">
-                          Hanya lihat
-                        </span>
-                      )}
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+          {/* KOLOM TABEL */}
+          <DataTable
+            columns={kolomFoto}
+            data={filteredData}
+            onEdit={handleEdit}
+            onDelete={handleDelete}
+            canAction={isAuthor}
+            withPagination={true}
+            itemsPerPage={ITEMS_PER_PAGES}
+          />
         </div>
       </div>
 
