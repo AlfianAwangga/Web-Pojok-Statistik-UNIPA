@@ -2,15 +2,39 @@
 
 import { ImageIcon, Users, ChevronRight } from "lucide-react";
 import ScrollAnimation from "../ui/scroll-anim";
-import { infografisData, InfografisModel } from "@/data/dummies";
+import { InfografisModel } from "@/data/infografis-model";
 import PreviewDialog from "../ui/preview-dialog";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import Image from "next/image";
+import { useFetch } from "@/hooks/use-fetch";
 
 export default function InfografisSection() {
-  const infografisTerbaru = infografisData.slice(0, 3);
+  // Ambil data dari API Route
+  const {
+    data: dataInfografis,
+    isLoading,
+    error,
+  } = useFetch<InfografisModel>("/api/infografis");
+
+  const infografisTerbaru = dataInfografis.slice(0, 3);
   const [selectedItem, setSelectedItem] = useState<InfografisModel | null>(
     null,
   );
+
+  // Tampilkan efek loading saat data sedang diambil
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-800"></div>
+      </div>
+    );
+  }
+
+  // Tampilkan efek jika error
+  if (error) {
+    return <div className="text-red-500">Error: {error}</div>;
+  }
+
   return (
     <section id="infografis" className="py-20 bg-gray-50">
       <ScrollAnimation>
@@ -37,9 +61,12 @@ export default function InfografisSection() {
                 className="bg-white rounded-xl shadow-lg overflow-hidden group hover:shadow-xl transition-all duration-300 border border-gray-100"
               >
                 <div className="relative h-64 overflow-hidden">
-                  <img
-                    src={item.image}
+                  <Image
+                    src={item.image_url}
                     alt={item.title}
+                    fill
+                    priority
+                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                   />
                   <div className="absolute inset-0 bg-linear-to-t from-black/70 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-4">

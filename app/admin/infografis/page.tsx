@@ -6,7 +6,8 @@ import {
   filterTableData,
   getUniqueCategories1,
 } from "@/components/utils/search";
-import { infografisData, InfografisModel } from "@/data/dummies";
+import { InfografisModel } from "@/data/infografis-model";
+import { useFetch } from "@/hooks/use-fetch";
 import { CheckCircle, Plus, Search, UploadCloud } from "lucide-react";
 import { useMemo, useState } from "react";
 
@@ -16,18 +17,30 @@ interface FormData {
   category: string;
   description: string;
 }
-// Mengambil daftar kategori unik dari data dummy untuk dropdown form
-const categories = getUniqueCategories1(infografisData);
 
 export default function InfografisAdmin() {
   // KONFIGURASI
-  const currentUser = "Author 1"; // Simulasi user yang sedang login
+  const currentUser = "Alfian Diva Awangga"; // Simulasi user yang sedang login
   const ITEMS_PER_PAGES = 10; // Konfigurasi jumlah data per halaman pagination
+
+  // Ambil data dari API Route
+  const {
+    data: dataInfografis,
+    isLoading,
+    error,
+  } = useFetch<InfografisModel>("/api/infografis");
 
   // STATES
   // States untuk UI
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
+
+  // State untuk Upload File/Gambar
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [uploading, setUploading] = useState(false);
+
+  const categories = getUniqueCategories1(dataInfografis);
 
   // State untuk Data Form
   const [formData, setFormData] = useState<FormData>({
@@ -35,11 +48,6 @@ export default function InfografisAdmin() {
     category: categories[0],
     description: "",
   });
-
-  // State untuk Upload File/Gambar
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
-  const [uploading, setUploading] = useState(false);
 
   // KONFIGURASI TABEL
   // cek itemnya milik user atau bukan
@@ -70,12 +78,12 @@ export default function InfografisAdmin() {
 
   // Data tabel yang sudah difilter
   const filteredData = useMemo(() => {
-    return filterTableData(infografisData, searchTerm, [
+    return filterTableData(dataInfografis, searchTerm, [
       "title",
       "category",
       "author",
     ]);
-  }, [searchTerm]);
+  }, [dataInfografis, searchTerm]);
 
   // EVENT HANDLERS
   const handleEdit = (item: InfografisModel) =>
@@ -94,6 +102,20 @@ export default function InfografisAdmin() {
     const preview = URL.createObjectURL(file);
     setPreviewUrl(preview);
   };
+
+  // Tampilkan efek loading saat data sedang diambil
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-800"></div>
+      </div>
+    );
+  }
+
+  // Tampilkan efek jika error
+  if (error) {
+    return <div className="text-red-500">Error: {error}</div>;
+  }
 
   return (
     <div className="space-y-6 animate-in fade-in duration-300">

@@ -15,7 +15,7 @@ import {
 } from "lucide-react";
 
 export default function AdminDashboardPage() {
-  const currentUser = "Alfian Awangga";
+  const currentUser = "Alfian Diva Awangga";
   const myInfografisCount = 3;
   const myArtikelCount = 4;
   const myPhotoCount = 2;

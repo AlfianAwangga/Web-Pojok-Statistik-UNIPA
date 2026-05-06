@@ -1,9 +1,11 @@
 "use client";
 
-import { InfografisModel } from "@/data/dummies";
+// import { InfografisModel } from "@/data/dummies";
 import { imageDownloader } from "@/components/utils/download";
+import { InfografisModel } from "@/data/infografis-model";
 import { AnimatePresence, motion } from "framer-motion";
 import { X, Download, User, Calendar, MapPin, Info } from "lucide-react";
+import Image from "next/image";
 
 interface PreviewDialogProps {
   item: InfografisModel | null;
@@ -40,11 +42,13 @@ export default function PreviewDialog({ item, onClose }: PreviewDialogProps) {
             </button>
 
             {/* KIRI: Gambar */}
-            <div className="w-full h-[65vh] md:h-auto md:w-[60%] bg-gray-100 flex items-center justify-center relative p-2 md:p-6 overflow-hidden">
-              <img
-                src={item.image}
+            <div className="w-full md:w-[60%] bg-gray-100 flex items-center justify-center p-4 md:p-6">
+              <Image
+                src={item.image_url}
                 alt={item.title}
-                className="w-full h-full object-contain drop-shadow-xl"
+                width={1000}
+                height={1000}
+                className="w-auto h-auto max-w-full max-h-[80vh] object-contain drop-shadow-xl"
               />
             </div>
 
@@ -81,7 +85,7 @@ export default function PreviewDialog({ item, onClose }: PreviewDialogProps) {
                   <div className="flex items-center text-sm text-gray-700">
                     <MapPin className="w-4 h-4 mr-3 text-blue-600" />
                     <span className="w-32 font-semibold">Cakupan Data:</span>
-                    {item.area}
+                    {item.category}
                   </div>
                 </div>
 
@@ -96,7 +100,9 @@ export default function PreviewDialog({ item, onClose }: PreviewDialogProps) {
               {/* Footer Tombol Unduh */}
               <div className="p-6 border-t border-gray-100 bg-white">
                 <button
-                  onClick={() => imageDownloader(item.image, item.title)}
+                  onClick={() =>
+                    imageDownloader(item.drive_image_id, item.title)
+                  }
                   className="w-full bg-purple-900 hover:bg-purple-800 text-white font-bold py-3.5 px-4 rounded-xl flex items-center justify-center transition-colors shadow-lg"
                 >
                   <Download className="w-5 h-5 mr-2 text-yellow-400" />
