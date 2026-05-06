@@ -150,6 +150,7 @@ export default function DokumentasiAdmin() {
       <FormModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
+        onSubmit={() => {}}
         title="Tambah Foto Dokumentasi"
       >
         <div className="space-y-5">
