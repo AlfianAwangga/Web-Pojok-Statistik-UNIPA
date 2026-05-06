@@ -1,3 +1,7 @@
+"use client";
+
+import { InfografisModel } from "@/data/infografis-model";
+import { useFetch } from "@/hooks/use-fetch";
 import {
   BookAIcon,
   BookOpen,
@@ -15,9 +19,15 @@ import {
 } from "lucide-react";
 
 export default function AdminDashboardPage() {
-  const currentUser = "Alfian Awangga";
-  const myInfografisCount = 3;
-  const myArtikelCount = 4;
+  const currentUser = "Alfian Diva Awangga";
+
+  const {
+    data: dataInfografis,
+    isLoading,
+    error,
+  } = useFetch<InfografisModel>("/api/infografis");
+  const myInfografisCount = dataInfografis.length;
+  const myArtikelCount = dataInfografis.length;
   const myPhotoCount = 2;
   const myVideoCount = 0;
 

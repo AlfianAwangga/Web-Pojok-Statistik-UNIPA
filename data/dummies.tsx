@@ -1,4 +1,4 @@
-import { LOREM, loremIpsum } from "@/components/utils/strings";
+import { LOREM, loremIpsum } from "@/utils/strings";
 
 export interface ArticleSection {
   id: number;

@@ -1,8 +1,8 @@
 "use client";
 
 import ScrollAnimation from "@/components/ui/scroll-anim";
-import { getPaginatedData, getTotalPages } from "@/components/utils/pagination";
-import { filterData, getUniqueCategories } from "@/components/utils/search";
+import { getPaginatedData, getTotalPages } from "@/utils/pagination";
+import { filterData, getUniqueCategories } from "@/utils/search";
 import { artikelData } from "@/data/dummies";
 import {
   Calendar,

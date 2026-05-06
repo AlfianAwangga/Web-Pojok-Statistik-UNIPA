@@ -6,6 +6,7 @@ import { Save, X } from "lucide-react";
 interface FormModalProps {
   isOpen: boolean;
   onClose: () => void;
+  onSubmit: () => void;
   title: string;
   children: React.ReactNode;
 }
@@ -13,6 +14,7 @@ interface FormModalProps {
 export default function FormModal({
   isOpen,
   onClose,
+  onSubmit,
   title,
   children,
 }: FormModalProps) {
@@ -57,7 +59,8 @@ export default function FormModal({
               </button>
 
               <button
-                onClick={onClose}
+                type="submit"
+                onClick={onSubmit}
                 className="flex items-center rounded-lg bg-purple-600 px-5 py-2.5 text-sm font-bold text-white transition hover:bg-purple-700"
               >
                 <Save className="mr-2 h-4 w-4" />

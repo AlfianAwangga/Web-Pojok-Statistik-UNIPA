@@ -45,7 +45,7 @@ export function filterTableData<T>(
 export function getUniqueCategories<T extends { category: string }>(
   data: T[],
 ): string[] {
-  const categories = data.map((item) => item.category.trim());
+  const categories = data.map((item) => (item.category || "").trim());
   return ["Semua Kategori", ...Array.from(new Set(categories))];
 }
 

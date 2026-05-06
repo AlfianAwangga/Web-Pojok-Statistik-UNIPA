@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Pagination } from "../utils/pagination";
+import { Pagination } from "../../utils/pagination";
 
 // Mendefinisikan struktur kolom tabel
 export interface Column<T> {

@@ -2,10 +2,7 @@
 
 import { Column, DataTable } from "@/components/ui/data-table";
 import FormModal from "@/components/ui/form-modal";
-import {
-  filterTableData,
-  getUniqueCategories1,
-} from "@/components/utils/search";
+import { filterTableData, getUniqueCategories1 } from "@/utils/search";
 import { artikelData, ArtikelModel } from "@/data/dummies";
 import {
   CheckCircle,
@@ -214,6 +211,7 @@ export default function ArtikelAdmin() {
       <FormModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
+        onSubmit={() => {}}
         title="Tambah Artikel Statistik"
       >
         <div className="space-y-6">

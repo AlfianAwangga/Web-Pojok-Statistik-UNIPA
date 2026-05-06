@@ -2,11 +2,9 @@
 
 import { Column, DataTable } from "@/components/ui/data-table";
 import FormModal from "@/components/ui/form-modal";
-import {
-  filterTableData,
-  getUniqueCategories1,
-} from "@/components/utils/search";
-import { infografisData, InfografisModel } from "@/data/dummies";
+import { filterTableData, getUniqueCategories1 } from "@/utils/search";
+import { InfografisModel } from "@/data/infografis-model";
+import { useFetch } from "@/hooks/use-fetch";
 import { CheckCircle, Plus, Search, UploadCloud } from "lucide-react";
 import { useMemo, useState } from "react";
 
@@ -16,30 +14,37 @@ interface FormData {
   category: string;
   description: string;
 }
-// Mengambil daftar kategori unik dari data dummy untuk dropdown form
-const categories = getUniqueCategories1(infografisData);
 
 export default function InfografisAdmin() {
   // KONFIGURASI
-  const currentUser = "Author 1"; // Simulasi user yang sedang login
+  const currentUser = "Alfian Diva Awangga"; // Simulasi user yang sedang login
   const ITEMS_PER_PAGES = 10; // Konfigurasi jumlah data per halaman pagination
+
+  // Ambil data dari API Route
+  const {
+    data: dataInfografis,
+    isLoading,
+    error,
+  } = useFetch<InfografisModel>("/api/infografis");
 
   // STATES
   // States untuk UI
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
 
-  // State untuk Data Form
-  const [formData, setFormData] = useState<FormData>({
-    title: "",
-    category: categories[0],
-    description: "",
-  });
-
   // State untuk Upload File/Gambar
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
+
+  const categories = getUniqueCategories1(dataInfografis);
+
+  // State untuk Data Form
+  const [formData, setFormData] = useState<FormData>({
+    title: "",
+    category: "",
+    description: "",
+  });
 
   // KONFIGURASI TABEL
   // cek itemnya milik user atau bukan
@@ -70,12 +75,12 @@ export default function InfografisAdmin() {
 
   // Data tabel yang sudah difilter
   const filteredData = useMemo(() => {
-    return filterTableData(infografisData, searchTerm, [
+    return filterTableData(dataInfografis, searchTerm, [
       "title",
       "category",
       "author",
     ]);
-  }, [searchTerm]);
+  }, [dataInfografis, searchTerm]);
 
   // EVENT HANDLERS
   const handleEdit = (item: InfografisModel) =>
@@ -94,6 +99,48 @@ export default function InfografisAdmin() {
     const preview = URL.createObjectURL(file);
     setPreviewUrl(preview);
   };
+
+  const handleSubmit = async () => {
+    if (!selectedFile) return alert("Pilih file dulu!");
+    const formDataUpload = new FormData();
+    formDataUpload.append("file", selectedFile);
+    formDataUpload.append("title", formData.title);
+    formDataUpload.append("category", formData.category);
+    formDataUpload.append("description", formData.description);
+    try {
+      setUploading(true);
+      const res = await fetch("/api/infografis", {
+        method: "POST",
+        body: formDataUpload,
+      });
+      const result = await res.json();
+      if (result.success) {
+        alert("Berhasil upload!");
+        setIsModalOpen(false);
+        window.location.reload();
+      } else {
+        alert("Gagal upload");
+      }
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  // Tampilkan efek loading saat data sedang diambil
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-800"></div>
+      </div>
+    );
+  }
+
+  // Tampilkan efek jika error
+  if (error) {
+    return <div className="text-red-500">Error: {error}</div>;
+  }
 
   return (
     <div className="space-y-6 animate-in fade-in duration-300">
@@ -149,6 +196,7 @@ export default function InfografisAdmin() {
       <FormModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
+        onSubmit={handleSubmit}
         title="Unggah Karya Infografis"
       >
         <div className="space-y-5">
@@ -178,7 +226,7 @@ export default function InfografisAdmin() {
             <label className="mb-1 block text-sm font-semibold text-slate-700">
               Kategori Utama
             </label>
-            <select
+            {/* <select
               value={formData.category}
               onChange={(e) => handleInputChange("category", e.target.value)}
               className="w-full rounded-lg border border-slate-200 px-4 py-2.5 outline-none focus:ring-2 focus:ring-purple-500 text-slate-700"
@@ -186,7 +234,14 @@ export default function InfografisAdmin() {
               {categories.map((category) => (
                 <option key={category}>{category}</option>
               ))}
-            </select>
+            </select> */}
+            <input
+              type="text"
+              value={formData.category}
+              onChange={(e) => handleInputChange("category", e.target.value)}
+              placeholder="Contoh: Kemiskinan, Pendidikan, ..."
+              className="w-full rounded-lg border border-slate-200 px-4 py-2.5 outline-none transition focus:border-purple-500 focus:ring-2 focus:ring-purple-500 text-slate-700"
+            />
           </div>
 
           <div>

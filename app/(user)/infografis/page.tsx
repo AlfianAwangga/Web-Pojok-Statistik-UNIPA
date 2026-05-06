@@ -1,27 +1,25 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
-import { infografisData, InfografisModel } from "@/data/dummies";
-import { imageDownloader } from "@/components/utils/download";
-import { getTotalPages, getPaginatedData } from "@/components/utils/pagination";
-import { filterData, getUniqueCategories } from "@/components/utils/search";
+import PreviewDialog from "@/components/ui/preview-dialog";
+import ScrollAnimation from "@/components/ui/scroll-anim";
+import { imageDownloader } from "@/utils/download";
+import { getPaginatedData, getTotalPages } from "@/utils/pagination";
+import { filterData, getUniqueCategories } from "@/utils/search";
+import { InfografisModel } from "@/data/infografis-model";
+import { useFetch } from "@/hooks/use-fetch";
 import {
-  Search,
   Calendar,
-  User,
+  ChevronDown,
   ChevronLeft,
   ChevronRight,
-  ChevronDown,
   Download,
   Eye,
   Filter,
-  X,
-  MapPin,
-  Info,
+  Search,
+  User,
 } from "lucide-react";
-import { AnimatePresence, motion } from "framer-motion";
-import ScrollAnimation from "@/components/ui/scroll-anim";
-import PreviewDialog from "@/components/ui/preview-dialog";
+import Image from "next/image";
+import { useEffect, useState } from "react";
 
 const ITEMS_PER_PAGE = 6;
 
@@ -33,10 +31,17 @@ export default function InfografisPage() {
     null,
   );
 
-  const categories = getUniqueCategories(infografisData);
+  // Ambil data dari API Route
+  const {
+    data: dataInfografis,
+    isLoading,
+    error,
+  } = useFetch<InfografisModel>("/api/infografis");
+
+  const categories = getUniqueCategories(dataInfografis);
 
   const filteredData = filterData(
-    infografisData,
+    dataInfografis,
     searchQuery,
     selectedCategory,
   );
@@ -51,6 +56,20 @@ export default function InfografisPage() {
     currentPage,
     ITEMS_PER_PAGE,
   );
+
+  // Tampilkan efek loading saat data sedang diambil
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-800"></div>
+      </div>
+    );
+  }
+
+  // Tampilkan efek jika error
+  if (error) {
+    return <div className="text-red-500">Error: {error}</div>;
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 pb-20">
@@ -140,10 +159,13 @@ export default function InfografisPage() {
                   >
                     {/* Thumbnail Gambar */}
                     <div className="relative h-60 overflow-hidden bg-gray-200">
-                      <img
-                        src={item.image}
+                      <Image
+                        src={item.image_url}
                         alt={item.title}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                        fill
+                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                        priority
+                        className="w-full h-full object-cover object-top group-hover:scale-105 transition-transform duration-500"
                       />
                       <div className="absolute top-3 right-3 bg-yellow-300 backdrop-blur text-gray-900 text-xs px-3 py-1 rounded-full shadow-sm">
                         {item.category}
@@ -177,7 +199,7 @@ export default function InfografisPage() {
                         </button>
                         <button
                           onClick={() =>
-                            imageDownloader(item.image, item.title)
+                            imageDownloader(item.image_url, item.title)
                           }
                           className="flex-1 cursor-pointer bg-yellow-500 text-gray-900 font-bold py-2 rounded-lg flex items-center justify-center hover:bg-yellow-400 transition shadow-sm"
                         >

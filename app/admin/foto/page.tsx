@@ -2,7 +2,7 @@
 
 import { Column, DataTable } from "@/components/ui/data-table";
 import FormModal from "@/components/ui/form-modal";
-import { filterTableData } from "@/components/utils/search";
+import { filterTableData } from "@/utils/search";
 import { fotoData, FotoModel } from "@/data/dummies";
 import {
   CheckCircle,
