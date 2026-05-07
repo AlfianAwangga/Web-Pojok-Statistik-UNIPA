@@ -4,6 +4,8 @@ import { BookOpen, ArrowRight } from "lucide-react";
 import ScrollAnimation from "../ui/scroll-anim";
 import { artikelData } from "@/data/dummies";
 import { useRouter } from "next/navigation";
+import { useFetch } from "@/hooks/use-fetch";
+import { ArtikelModel } from "@/data/artikel-model";
 
 export default function ArtikelSection() {
   const router = useRouter();
@@ -11,7 +13,14 @@ export default function ArtikelSection() {
     router.push(`/artikel/${slug}`);
   };
 
-  const artikelTerbaru = artikelData.slice(0, 3);
+  // Ambil data dari API Route
+  const {
+    data: dataArtikel,
+    isLoading,
+    error,
+  } = useFetch<ArtikelModel>("/api/artikel");
+
+  const artikelTerbaru = dataArtikel.slice(0, 3);
   return (
     <section id="artikel" className="py-20 bg-white">
       <ScrollAnimation>

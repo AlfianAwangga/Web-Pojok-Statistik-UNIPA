@@ -1,4 +1,3 @@
-// app/api/infografis/route.ts
 import { NextResponse } from "next/server";
 import { createInfografis, getInfografis } from "@/utils/infografis-services";
 

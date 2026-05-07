@@ -33,6 +33,9 @@ export function filterTableData<T>(
   searchTerm: string,
   fields: (keyof T)[],
 ): T[] {
+  if (!data || !Array.isArray(data)) {
+    return [];
+  }
   return data.filter((item) =>
     fields
       .map((field) => String(item[field] ?? ""))

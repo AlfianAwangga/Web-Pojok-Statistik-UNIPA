@@ -18,6 +18,9 @@ import {
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import { useFetch } from "@/hooks/use-fetch";
+import { ArtikelModel } from "@/data/artikel-model";
+import Image from "next/image";
 
 const ITEMS_PER_PAGE = 4;
 
@@ -27,8 +30,15 @@ export default function ArtikelPage() {
   const [selectedCategory, setSelectedCategory] = useState("Semua Kategori");
   const [isFilterOpen, setIsFilterOpen] = useState(false);
 
-  const categories = getUniqueCategories(artikelData);
-  const filteredData = filterData(artikelData, searchQuery, selectedCategory);
+  // Ambil data dari API Route
+  const {
+    data: dataArtikel,
+    isLoading,
+    error,
+  } = useFetch<ArtikelModel>("/api/artikel");
+
+  const categories = getUniqueCategories(dataArtikel);
+  const filteredData = filterData(dataArtikel, searchQuery, selectedCategory);
 
   useEffect(() => {
     setCurrentPage(1);
@@ -46,6 +56,20 @@ export default function ArtikelPage() {
   const handleOpenArticle = (slug: string) => {
     router.push(`/artikel/${slug}`);
   };
+
+  // Tampilkan efek loading saat data sedang diambil
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-800"></div>
+      </div>
+    );
+  }
+
+  // Tampilkan efek jika error
+  if (error) {
+    return <div className="text-red-500">Error: {error}</div>;
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 font-sans text-gray-800 pb-20">
@@ -151,10 +175,13 @@ export default function ArtikelPage() {
                   >
                     {/* Thumbnail */}
                     <div className="md:w-2/5 h-56 md:h-auto relative overflow-hidden">
-                      <img
+                      <Image
                         src={article.thumbnail}
                         alt={article.title}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+                        fill
+                        priority
+                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                        className="w-full h-full object-cover brightness-85 group-hover:scale-105 transition-transform duration-700"
                       />
                       <div className="absolute top-4 left-4 bg-yellow-300 text-grey-900 backdrop-blur text-xs font-bold px-3 py-1.5 rounded-md uppercase tracking-wider">
                         {article.category}

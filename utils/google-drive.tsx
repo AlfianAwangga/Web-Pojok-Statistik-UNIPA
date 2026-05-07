@@ -2,14 +2,11 @@ import { google } from "googleapis";
 import { auth } from "@/utils/google-auth";
 import { Readable } from "stream";
 
-export async function uploadToDrive(file: File) {
+export async function uploadToDrive(file: File, folderId: string) {
   try {
     // 1. Validasi Environment Variable di awal
-    const folderId = process.env.GOOGLE_DRIVE_FOLDER_INFOGRAFIS_ID;
     if (!folderId) {
-      throw new Error(
-        "GOOGLE_DRIVE_FOLDER_INFOGRAFIS_ID belum diatur di dalam file .env",
-      );
+      throw new Error("folderId belum diatur di dalam file .env");
     }
 
     // Inisialisasi Drive

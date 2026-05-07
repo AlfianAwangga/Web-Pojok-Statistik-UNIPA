@@ -41,7 +41,7 @@ export async function getInfografis() {
   }
 }
 
-export async function getLastId(): Promise<number> {
+export async function getInfografisLastId(): Promise<number> {
   try {
     const spreadsheetId = process.env.SPREADSHEET_ID;
     if (!spreadsheetId) return 0; // Fallback aman jika env belum siap
@@ -70,6 +70,7 @@ export async function getLastId(): Promise<number> {
 export async function createInfografis(req: Request) {
   try {
     const formData = await req.formData();
+    const folderId = process.env.GOOGLE_DRIVE_FOLDER_INFOGRAFIS_ID as string;
 
     // Menggunakan fallback 'null' untuk tipe File agar TypeScript tidak protes saat validasi
     const file = formData.get("file") as File | null;
@@ -85,14 +86,18 @@ export async function createInfografis(req: Request) {
       };
     }
 
-    const lastId = await getLastId();
+    const lastId = await getInfografisLastId();
     const id = lastId + 1;
 
     const author = "Admin";
-    const date = new Date().toLocaleDateString("id-ID");
+    const date = new Date().toLocaleDateString("id-ID", {
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+    });
 
     // 1. Upload ke Drive (Cek status success-nya!)
-    const uploadResult = await uploadToDrive(file);
+    const uploadResult = await uploadToDrive(file, folderId);
     if (!uploadResult.success) {
       return {
         success: false,
@@ -128,7 +133,6 @@ export async function createInfografis(req: Request) {
       };
     }
 
-    // Jika semua mulus, kembalikan respons sukses
     return {
       success: true,
       message: "Berhasil upload infografis",

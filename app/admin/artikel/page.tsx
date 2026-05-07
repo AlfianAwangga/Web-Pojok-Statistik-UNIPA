@@ -3,7 +3,8 @@
 import { Column, DataTable } from "@/components/ui/data-table";
 import FormModal from "@/components/ui/form-modal";
 import { filterTableData, getUniqueCategories1 } from "@/utils/search";
-import { artikelData, ArtikelModel } from "@/data/dummies";
+import { artikelData } from "@/data/dummies";
+import { ArtikelModel } from "@/data/artikel-model";
 import {
   CheckCircle,
   FileText,
@@ -12,8 +13,10 @@ import {
   Star,
   Tag,
   Trash2,
+  UploadCloud,
 } from "lucide-react";
 import { useMemo, useState } from "react";
+import { useFetch } from "@/hooks/use-fetch";
 
 // INTERFACES
 interface ArticleSection {
@@ -27,31 +30,41 @@ interface FormData {
   category: string;
   excerpt: string;
   tags: string;
-  featured: boolean;
   status: "draft" | "published";
   sections: ArticleSection[];
 }
-
-// Mengambil daftar kategori unik dari data dummy untuk dropdown form
-const categories = getUniqueCategories1(artikelData);
 
 export default function ArtikelAdmin() {
   // KONFIGURASI
   const currentUser = "Author 1"; // Simulasi user yang sedang login
   const ITEMS_PER_PAGES = 10; // Konfigurasi jumlah data per halaman pagination
 
+  // Ambil data dari API Route
+  const {
+    data: dataArtikel,
+    isLoading,
+    error,
+  } = useFetch<ArtikelModel>("/api/artikel");
+
   // STATES
   // States untuk UI
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
 
+  // State untuk Upload File/Gambar
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+
+  // Mengambil daftar kategori unik dari data dummy untuk dropdown form
+  // const categories = getUniqueCategories1(dataArtikel);
+
   // State untuk form artikel
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState<FormData>({
     title: "",
-    category: categories[0] || "Umum",
+    category: "",
     excerpt: "",
     tags: "",
-    featured: false,
     status: "published",
     sections: [
       {
@@ -91,12 +104,12 @@ export default function ArtikelAdmin() {
 
   // Data tabel yang sudah difilter
   const filteredData = useMemo(() => {
-    return filterTableData(artikelData, searchTerm, [
+    return filterTableData(dataArtikel, searchTerm, [
       "title",
       "category",
       "author",
     ]);
-  }, [searchTerm]);
+  }, [dataArtikel, searchTerm]);
 
   // Handler form section
   const addSection = () => {
@@ -148,11 +161,96 @@ export default function ArtikelAdmin() {
     }));
   };
 
+  const handleFileChange = (file: File) => {
+    setSelectedFile(file);
+    const preview = URL.createObjectURL(file);
+    setPreviewUrl(preview);
+  };
+
   // Handler Button
   const handleEdit = (item: ArtikelModel) =>
     console.log("Edit Infografis:", item.id);
   const handleDelete = (item: ArtikelModel) =>
     console.log("Hapus Infografis:", item.id);
+
+  const handleSubmit = async () => {
+    // 1. Validasi Dasar
+    if (!formData.title.trim() || !selectedFile) {
+      alert("Judul artikel wajib diisi!");
+      return;
+    }
+
+    try {
+      // 2. Siapkan FormData (Standar untuk kirim file & teks)
+      const body = new FormData();
+
+      // Data teks dari state
+      body.append("title", formData.title);
+      body.append("file", selectedFile);
+      body.append("category", formData.category);
+      body.append("excerpt", formData.excerpt);
+      body.append("author", currentUser); // Diambil dari variable currentUser di atas
+      body.append("tags", formData.tags);
+      body.append("status", formData.status);
+
+      // Kirim Array Sections sebagai string JSON
+      // Backend akan men-deserialize (JSON.parse) data ini
+      body.append("sections", JSON.stringify(formData.sections));
+
+      /* Jika nanti Anda menambahkan input file thumbnail:
+         const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
+         if (fileInput?.files?.[0]) {
+            body.append("thumbnail", fileInput.files[0]);
+         }
+      */
+
+      // 3. Eksekusi Request ke API Route Next.js
+      setIsSubmitting(true);
+      const response = await fetch("/api/artikel", {
+        method: "POST",
+        body: body,
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        alert("Artikel berhasil dipublikasikan!");
+
+        // 4. Reset Form & Tutup Modal
+        // setFormData({
+        //   title: "",
+        //   category: categories[0] || "Umum",
+        //   excerpt: "",
+        //   tags: "",
+        //   status: "published",
+        //   sections: [{ id: Date.now(), type: "paragraph", content: "" }],
+        // });
+        setIsModalOpen(false);
+        window.location.reload();
+      } else {
+        alert(`Gagal: ${result.message}`);
+      }
+    } catch (error) {
+      console.error("Submit Error:", error);
+      alert("Terjadi kesalahan koneksi ke server.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  // Tampilkan efek loading saat data sedang diambil
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-800"></div>
+      </div>
+    );
+  }
+
+  // Tampilkan efek jika error
+  if (error) {
+    return <div className="text-red-500">Error: {error}</div>;
+  }
 
   return (
     <div className="space-y-6 animate-in fade-in duration-300">
@@ -211,7 +309,7 @@ export default function ArtikelAdmin() {
       <FormModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
-        onSubmit={() => {}}
+        onSubmit={handleSubmit}
         title="Tambah Artikel Statistik"
       >
         <div className="space-y-6">
@@ -244,7 +342,14 @@ export default function ArtikelAdmin() {
               <label className="mb-1 block text-sm font-semibold text-slate-700">
                 Kategori
               </label>
-              <select
+              <input
+                type="text"
+                value={formData.category}
+                onChange={(e) => handleInputChange("category", e.target.value)}
+                placeholder="Contoh: Kemiskinan, Pendidikan, ..."
+                className="w-full rounded-lg border border-slate-200 px-4 py-2.5 outline-none focus:ring-2 focus:ring-purple-500 text-slate-700"
+              />
+              {/* <select
                 value={formData.category}
                 onChange={(e) => handleInputChange("category", e.target.value)}
                 className="w-full rounded-lg border border-slate-200 px-4 py-2.5 outline-none focus:ring-2 focus:ring-purple-500 text-slate-700"
@@ -252,7 +357,7 @@ export default function ArtikelAdmin() {
                 {categories.map((category) => (
                   <option key={category}>{category}</option>
                 ))}
-              </select>
+              </select> */}
             </div>
 
             <div>
@@ -286,26 +391,68 @@ export default function ArtikelAdmin() {
               />
             </div>
 
+            <div>
+              <label className="mb-1 block text-sm font-semibold text-slate-700">
+                Unggah Thumbnail
+              </label>
+
+              <div
+                onClick={() => document.getElementById("fileInput")?.click()}
+                className="cursor-pointer rounded-xl border-2 border-dashed border-slate-300 p-2 text-center transition hover:bg-slate-50 h-56 flex items-center justify-center overflow-hidden"
+              >
+                {previewUrl ? (
+                  <img
+                    src={previewUrl}
+                    alt="preview"
+                    className="h-full w-auto object-cover rounded-lg"
+                  />
+                ) : (
+                  <div className="flex flex-col items-center justify-center">
+                    <UploadCloud className="mb-3 h-10 w-10 text-slate-400" />
+                    <p className="text-sm font-medium text-slate-600">
+                      Seret file ke sini atau klik untuk mencari
+                    </p>
+                    <p className="mt-1 text-xs text-slate-400">
+                      PNG atau JPG, resolusi tinggi. Maks. 5MB
+                    </p>
+                  </div>
+                )}
+              </div>
+
+              {/* Sembunyikan Input saat gambar dipilih */}
+              <input
+                id="fileInput"
+                type="file"
+                accept="image/png, image/jpeg"
+                className="hidden"
+                onChange={(e) => {
+                  if (e.target.files && e.target.files[0]) {
+                    handleFileChange(e.target.files[0]);
+                  }
+                }}
+              />
+            </div>
+
             <div className="flex items-center justify-between rounded-lg border border-slate-200 p-4">
               <div>
-                <p className="font-semibold text-slate-700">Featured Article</p>
+                <p className="font-semibold text-slate-700">
+                  Jadikan Sebagai Draft
+                </p>
                 <p className="text-sm text-slate-500">
-                  Tampilkan sebagai artikel unggulan
+                  Kamu bisa mengeditnya lagi nanti
                 </p>
               </div>
               <button
                 type="button"
-                onClick={() =>
-                  handleInputChange("featured", !formData.featured)
-                }
+                onClick={() => handleInputChange("status", !formData.status)}
                 className={`rounded-lg px-4 py-2 text-sm font-semibold ${
-                  formData.featured
+                  formData.status
                     ? "bg-yellow-100 text-yellow-700"
                     : "bg-slate-100 text-slate-500"
                 }`}
               >
                 <Star className="inline h-4 w-4 mr-1" />
-                {formData.featured ? "Aktif" : "Nonaktif"}
+                {formData.status ? "Aktif" : "Nonaktif"}
               </button>
             </div>
           </div>

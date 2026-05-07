@@ -12,6 +12,8 @@ import {
   ChevronRight,
 } from "lucide-react";
 import ShareDialog from "@/components/ui/share-dialog";
+import { useFetch } from "@/hooks/use-fetch";
+import { ArtikelModel } from "@/data/artikel-model";
 
 export default function ArtikelDetailPage({
   params,
@@ -22,13 +24,34 @@ export default function ArtikelDetailPage({
   const router = useRouter();
   const [isShareOpen, setIsShareOpen] = useState(false);
 
-  const article = artikelData.find((a) => a.slug === slug);
+  // Ambil data dari API Route
+  const {
+    data: dataArtikel,
+    isLoading,
+    error,
+  } = useFetch<ArtikelModel>("/api/artikel");
 
-  if (!article) return notFound();
+  const article = dataArtikel.find((a) => a.slug === slug);
 
   const articleUrl = `${
     typeof window !== "undefined" ? window.location.origin : ""
   }/artikel/${slug}`;
+
+  // Tampilkan efek loading saat data sedang diambil
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-800"></div>
+      </div>
+    );
+  }
+
+  // Tampilkan efek jika error
+  if (error) {
+    return <div className="text-red-500">Error: {error}</div>;
+  }
+
+  if (!article) return notFound();
 
   return (
     <div className="min-h-screen bg-gray-50 pb-20 text-gray-800">
