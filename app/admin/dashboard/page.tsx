@@ -3,6 +3,8 @@
 import { ArtikelModel } from "@/data/dummies";
 import { FotoModel } from "@/data/foto-model";
 import { InfografisModel } from "@/data/infografis-model";
+import { UserModel } from "@/data/user-model";
+import { useAuth } from "@/hooks/use-auth";
 import { useFetch } from "@/hooks/use-fetch";
 import {
   BookAIcon,
@@ -21,23 +23,12 @@ import {
 } from "lucide-react";
 
 export default function AdminDashboardPage() {
-  const currentUser = "Alfian Diva Awangga";
+  const { user } = useAuth();
 
-  const {
-    data: dataInfografis,
-    isLoading: loadInfografis,
-    error: errInfografis,
-  } = useFetch<InfografisModel>("/api/infografis");
-  const {
-    data: dataArtikel,
-    isLoading: loadArtikel,
-    error: errArtikel,
-  } = useFetch<ArtikelModel>("/api/artikel");
-  const {
-    data: dataFoto,
-    isLoading: loadFoto,
-    error: errFoto,
-  } = useFetch<FotoModel>("/api/foto");
+  const { data: dataInfografis } = useFetch<InfografisModel>("/api/infografis");
+  const { data: dataArtikel } = useFetch<ArtikelModel>("/api/artikel");
+  const { data: dataFoto } = useFetch<FotoModel>("/api/foto");
+  const { data: dataUsers } = useFetch<UserModel>("/api/users");
   const myInfografisCount = dataInfografis.length;
   const myArtikelCount = dataArtikel.length;
   const myPhotoCount = dataFoto.length;
@@ -47,7 +38,7 @@ export default function AdminDashboardPage() {
   const totalArtikel = dataArtikel.length;
   const totalPhoto = dataFoto.length;
   const totalVideo = 3;
-  const totalUsers = 5;
+  const totalUsers = dataUsers.length;
 
   const overallStatItems = [
     {
@@ -87,7 +78,7 @@ export default function AdminDashboardPage() {
       <div className="bg-purple-800 rounded-2xl p-4 md:p-8 text-white shadow-lg relative overflow-hidden">
         <div className="relative z-10">
           <h2 className="text-2xl md:text-3xl font-bold mb-2">
-            Selamat datang, {currentUser}! 👋
+            Selamat datang, {user!?.nama}! 👋
           </h2>
           <p className="text-sm text-blue-100 max-w-2xl">
             Ini adalah ruang kerja kolaboratif. Kamu dapat mengelola karyamu
@@ -113,7 +104,7 @@ export default function AdminDashboardPage() {
               </h4>
             </div>
             <div className="sm:bg-sky-50 p-3 rounded-xl">
-              <CheckCircle className="hidden sm:block sm:block sm:size-8 sm:text-sky-600" />
+              <CheckCircle className="hidden sm:block sm:size-8 sm:text-sky-600" />
             </div>
           </div>
           <div className="bg-white p-6 rounded-2xl border-l-4 border-emerald-500 shadow-sm flex items-center justify-between">

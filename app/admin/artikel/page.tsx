@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import { useMemo, useState } from "react";
 import { useFetch } from "@/hooks/use-fetch";
+import { useAuth } from "@/hooks/use-auth";
 
 // INTERFACES
 interface ArticleSection {
@@ -36,6 +37,7 @@ interface FormData {
 
 export default function ArtikelAdmin() {
   // KONFIGURASI
+  const { user } = useAuth();
   const currentUser = "Author 1"; // Simulasi user yang sedang login
   const ITEMS_PER_PAGES = 10; // Konfigurasi jumlah data per halaman pagination
 
@@ -77,7 +79,8 @@ export default function ArtikelAdmin() {
 
   // KONFIGURASI TABEL
   // cek itemnya milik user atau bukan
-  const isAuthor = (item: ArtikelModel) => item.author === currentUser;
+  const isAuthor = (item: ArtikelModel) =>
+    item.author === user?.nama || user?.role === "admin";
 
   // Struktur kolom untuk komponen DataTable
   const kolomArtikel: Column<any>[] = [

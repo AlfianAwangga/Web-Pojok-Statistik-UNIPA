@@ -2,18 +2,13 @@
 
 import { Column, DataTable } from "@/components/ui/data-table";
 import FormModal from "@/components/ui/form-modal";
-import { filterTableData } from "@/utils/search";
-import {
-  CheckCircle,
-  Edit,
-  Plus,
-  Search,
-  Trash2,
-  UploadCloud,
-} from "lucide-react";
-import { useMemo, useState } from "react";
-import { useFetch } from "@/hooks/use-fetch";
 import { FotoModel } from "@/data/foto-model";
+import { UserModel } from "@/data/user-model";
+import { useAuth } from "@/hooks/use-auth";
+import { useFetch } from "@/hooks/use-fetch";
+import { filterTableData } from "@/utils/search";
+import { CheckCircle, Plus, Search, UploadCloud } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
 
 // INTERFACES
 interface FormData {
@@ -23,7 +18,7 @@ interface FormData {
 
 export default function DokumentasiAdmin() {
   // KONFIGURASI
-  const currentUser = "Author 1"; // Simulasi user yang sedang login
+  const { user } = useAuth();
   const ITEMS_PER_PAGES = 10; // Konfigurasi jumlah data per halaman pagination
 
   // Ambil data dari API Route
@@ -47,7 +42,8 @@ export default function DokumentasiAdmin() {
 
   // KONFIGURASI TABEL
   // cek itemnya milik user atau bukan
-  const isAuthor = (item: FotoModel) => item.uploader === currentUser;
+  const isAuthor = (item: FotoModel) =>
+    item.uploader === user?.nama || user?.role === "admin";
 
   // Struktur kolom untuk komponen DataTable
   const kolomFoto: Column<any>[] = [
@@ -82,6 +78,7 @@ export default function DokumentasiAdmin() {
     if (!selectedFile) return alert("Pilih file dulu!");
     const formDataUpload = new FormData();
     formDataUpload.append("file", selectedFile);
+    formDataUpload.append("uploader", user!?.nama);
     formDataUpload.append("caption", formData.caption);
     formDataUpload.append("location", formData.location);
     try {

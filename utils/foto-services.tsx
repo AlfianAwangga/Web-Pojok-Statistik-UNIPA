@@ -75,6 +75,7 @@ export async function createFoto(req: Request) {
     const file = formData.get("file") as File | null;
     const caption = formData.get("caption") as string;
     const location = formData.get("location") as string;
+    const uploader = formData.get("uploader") as string;
 
     // 🔥 Sangat disarankan untuk mengaktifkan kembali validasi ini
     if (!file || !caption) {
@@ -87,7 +88,6 @@ export async function createFoto(req: Request) {
     const lastId = await getFotoLastId();
     const id = lastId + 1;
 
-    const uploader = "Admin";
     const date = new Date().toLocaleDateString("id-ID", {
       year: "numeric",
       month: "2-digit",

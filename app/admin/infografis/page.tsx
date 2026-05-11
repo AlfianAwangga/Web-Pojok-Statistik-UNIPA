@@ -7,6 +7,7 @@ import { InfografisModel } from "@/data/infografis-model";
 import { useFetch } from "@/hooks/use-fetch";
 import { CheckCircle, Plus, Search, UploadCloud } from "lucide-react";
 import { useMemo, useState } from "react";
+import { useAuth } from "@/hooks/use-auth";
 
 // INTERFACES
 interface FormData {
@@ -17,7 +18,7 @@ interface FormData {
 
 export default function InfografisAdmin() {
   // KONFIGURASI
-  const currentUser = "Alfian Diva Awangga"; // Simulasi user yang sedang login
+  const { user } = useAuth(); // Simulasi user yang sedang login
   const ITEMS_PER_PAGES = 10; // Konfigurasi jumlah data per halaman pagination
 
   // Ambil data dari API Route
@@ -48,7 +49,8 @@ export default function InfografisAdmin() {
 
   // KONFIGURASI TABEL
   // cek itemnya milik user atau bukan
-  const isAuthor = (item: InfografisModel) => item.author === currentUser;
+  const isAuthor = (item: InfografisModel) =>
+    item.author === user?.nama || user?.role === "admin";
 
   // Struktur kolom untuk komponen DataTable
   const kolomInfografis: Column<any>[] = [

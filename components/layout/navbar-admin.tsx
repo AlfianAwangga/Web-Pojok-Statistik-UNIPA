@@ -15,8 +15,10 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useAuth } from "@/hooks/use-auth";
 
 export default function NavbarAdmin() {
+  const { user, logout } = useAuth();
   const pathname = usePathname();
   const [isCollapsed, setIsCollapsed] = useState(false);
 
@@ -142,6 +144,29 @@ export default function NavbarAdmin() {
           })}
         </div>
 
+        {user!?.role === "admin" && (
+          <>
+            {!isCollapsed && (
+              <p className="mt-8 mb-3 px-3 text-xs font-bold uppercase tracking-wider text-yellow-200">
+                Kelola User
+              </p>
+            )}
+
+            <Link
+              href="/admin/users"
+              className={`w-full flex items-center rounded-lg text-sm font-medium ${
+                pathname === "/admin/users"
+                  ? "bg-yellow-400 text-gray-700 shadow-md"
+                  : "hover:bg-purple-800 text-white"
+              } ${
+                isCollapsed ? "justify-center px-2 py-3" : "gap-3 px-4 py-3"
+              } `}
+            >
+              Pengguna
+            </Link>
+          </>
+        )}
+
         {!isCollapsed && (
           <p className="px-3 text-xs font-bold text-yellow-200 uppercase tracking-wider mb-3 mt-8">
             Profilku
@@ -158,6 +183,21 @@ export default function NavbarAdmin() {
           <Settings className="w-5 h-5 shrink-0" />
           {!isCollapsed && <span>Akun</span>}
         </button>
+
+        {user ? (
+          <button
+            onClick={logout}
+            className={`
+            w-full flex items-center rounded-lg text-sm font-medium
+            hover:bg-purple-800 text-white transition-all
+            ${isCollapsed ? "justify-center px-2 py-3" : "px-4 py-3 gap-3"}
+          `}
+          >
+            Logout
+          </button>
+        ) : (
+          <div className="hidden"></div>
+        )}
       </div>
     </aside>
   );

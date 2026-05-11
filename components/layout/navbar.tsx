@@ -1,11 +1,14 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { BarChart3, X, Menu } from "lucide-react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
+import { UserModel } from "@/data/user-model";
+import { useAuth } from "@/hooks/use-auth";
 
 export default function Navbar() {
+  const { user } = useAuth();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   const pathname = usePathname();
@@ -66,12 +69,21 @@ export default function Navbar() {
                 </Link>
               );
             })}
-            <Link
-              href="/admin"
-              className="ml-6 rounded-lg bg-purple-700 px-5 py-3 text-sm font-bold text-white transition hover:bg-purple-600 active:bg-purple-600"
-            >
-              Login
-            </Link>
+            {user ? (
+              <Link
+                href="/admin/dashboard"
+                className="rounded-lg bg-purple-800 px-4 py-2 text-sm font-semibold text-white hover:bg-purple-700"
+              >
+                Dashboard
+              </Link>
+            ) : (
+              <Link
+                href="/login"
+                className="rounded-lg border border-purple-800 px-4 py-2 text-sm font-semibold text-purple-800 hover:bg-purple-50"
+              >
+                Login
+              </Link>
+            )}
           </div>
 
           {/* Mobile Menu Button */}
@@ -111,12 +123,21 @@ export default function Navbar() {
               </Link>
             );
           })}
-          <Link
-            href="/admin"
-            className="ml-6 rounded-lg bg-purple-700 px-5 py-3 text-sm font-bold text-white transition hover:bg-purple-600 active:bg-purple-600"
-          >
-            Login
-          </Link>
+          {user ? (
+            <Link
+              href="/admin/dashboard"
+              className="rounded-lg bg-purple-800 px-4 py-2 text-sm font-semibold text-white hover:bg-purple-700"
+            >
+              Dashboard
+            </Link>
+          ) : (
+            <Link
+              href="/login"
+              className="rounded-lg border border-purple-800 px-4 py-2 text-sm font-semibold text-purple-800 hover:bg-purple-50"
+            >
+              Login
+            </Link>
+          )}
         </div>
       )}
     </nav>
