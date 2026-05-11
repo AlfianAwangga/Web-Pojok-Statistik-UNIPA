@@ -3,7 +3,6 @@
 import { Column, DataTable } from "@/components/ui/data-table";
 import FormModal from "@/components/ui/form-modal";
 import { filterTableData } from "@/utils/search";
-import { fotoData, FotoModel } from "@/data/dummies";
 import {
   CheckCircle,
   Edit,
@@ -13,19 +12,22 @@ import {
   UploadCloud,
 } from "lucide-react";
 import { useMemo, useState } from "react";
+import { useFetch } from "@/hooks/use-fetch";
+import { FotoModel } from "@/data/foto-model";
 
 // INTERFACES
 interface FormData {
-  title: string;
+  caption: string;
   location: string;
-  description: string;
-  imageUrl: string;
 }
 
 export default function DokumentasiAdmin() {
   // KONFIGURASI
   const currentUser = "Author 1"; // Simulasi user yang sedang login
   const ITEMS_PER_PAGES = 10; // Konfigurasi jumlah data per halaman pagination
+
+  // Ambil data dari API Route
+  const { data: dataFoto, isLoading, error } = useFetch<FotoModel>("/api/foto");
 
   // STATES
   // States untuk UI
@@ -34,10 +36,8 @@ export default function DokumentasiAdmin() {
 
   // State untuk form artikel
   const [formData, setFormData] = useState<FormData>({
-    title: "",
+    caption: "",
     location: "",
-    description: "",
-    imageUrl: "",
   });
 
   // State untuk Upload File/Gambar
@@ -69,15 +69,42 @@ export default function DokumentasiAdmin() {
         </span>
       ),
     },
-    { header: "Tanggal", accessorKey: "tanggal", hiddenOnMobile: true },
+    { header: "Tanggal", accessorKey: "upload_date", hiddenOnMobile: true },
   ];
 
   // Data tabel yang sudah difilter
   const filteredData = useMemo(() => {
-    return filterTableData(fotoData, searchTerm, ["caption", "lokasi"]);
-  }, [searchTerm]);
+    return filterTableData(dataFoto, searchTerm, ["caption", "lokasi"]);
+  }, [dataFoto, searchTerm]);
 
   // EVENT HANDLERS
+  const handleSubmit = async () => {
+    if (!selectedFile) return alert("Pilih file dulu!");
+    const formDataUpload = new FormData();
+    formDataUpload.append("file", selectedFile);
+    formDataUpload.append("caption", formData.caption);
+    formDataUpload.append("location", formData.location);
+    try {
+      setUploading(true);
+      const res = await fetch("/api/foto", {
+        method: "POST",
+        body: formDataUpload,
+      });
+      const result = await res.json();
+      if (result.success) {
+        alert("Berhasil upload!");
+        setIsModalOpen(false);
+        window.location.reload();
+      } else {
+        alert("Gagal upload");
+      }
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setUploading(false);
+    }
+  };
+
   const handleEdit = (item: FotoModel) =>
     console.log("Edit Infografis:", item.id);
   const handleDelete = (item: FotoModel) =>
@@ -97,6 +124,20 @@ export default function DokumentasiAdmin() {
     const preview = URL.createObjectURL(file);
     setPreviewUrl(preview);
   };
+
+  // Tampilkan efek loading saat data sedang diambil
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-800"></div>
+      </div>
+    );
+  }
+
+  // Tampilkan efek jika error
+  if (error) {
+    return <div className="text-red-500">Error: {error}</div>;
+  }
 
   return (
     <div className="space-y-6 animate-in fade-in duration-300">
@@ -150,7 +191,7 @@ export default function DokumentasiAdmin() {
       <FormModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
-        onSubmit={() => {}}
+        onSubmit={handleSubmit}
         title="Tambah Foto Dokumentasi"
       >
         <div className="space-y-5">
@@ -168,8 +209,8 @@ export default function DokumentasiAdmin() {
             </label>
             <input
               type="text"
-              value={formData.title}
-              onChange={(e) => handleInputChange("title", e.target.value)}
+              value={formData.caption}
+              onChange={(e) => handleInputChange("caption", e.target.value)}
               placeholder="Contoh: Kegiatan Pembinaan Statistik Sektoral"
               className="w-full rounded-lg border border-slate-200 px-4 py-2.5 text-slate-700 outline-none transition focus:border-purple-500 focus:ring-2 focus:ring-purple-500"
             />

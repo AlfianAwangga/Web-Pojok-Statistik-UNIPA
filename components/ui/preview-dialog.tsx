@@ -31,7 +31,7 @@ export default function PreviewDialog({ item, onClose }: PreviewDialogProps) {
             initial={{ opacity: 0, scale: 0.9, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.9, y: 20 }}
-            className="relative w-10/12 h-11/12 md:h-auto md:max-h-[90vh] md:max-w-7xl bg-white md:rounded-2xl shadow-2xl flex flex-col md:flex-row overflow-hidden z-10"
+            className="relative w-10/12 md:h-auto md:max-h-[90vh] md:max-w-7xl bg-white rounded-2xl shadow-2xl flex flex-col md:flex-row overflow-hidden z-10"
           >
             {/* Tombol Tutup */}
             <button
@@ -57,20 +57,20 @@ export default function PreviewDialog({ item, onClose }: PreviewDialogProps) {
               {/* Header Info */}
               <div className="p-6 md:p-8 bg-gray-50/50 border-b border-gray-100">
                 <div className="flex justify-between items-start mb-3">
-                  <span className="bg-yellow-100 text-yellow-800 text-xs font-extrabold px-3 py-1 rounded uppercase tracking-wider">
+                  <span className="bg-yellow-100 text-yellow-800 text-xs font-bold sm:font-extrabold px-3 py-1 rounded uppercase tracking-wider">
                     {item.category}
                   </span>
                   <span className="text-gray-400 text-sm font-mono">
                     {item.id}
                   </span>
                 </div>
-                <h2 className="text-2xl md:text-3xl font-bold text-blue-950 leading-tight">
+                <h2 className="text-md md:text-3xl font-bold text-blue-950 leading-tight">
                   {item.title}
                 </h2>
               </div>
 
               {/* Metadata & Deskripsi */}
-              <div className="p-6 md:p-8 overflow-y-auto grow">
+              <div className=" p-6 md:p-8 overflow-y-auto grow">
                 <div className="bg-blue-50/50 border border-blue-100 rounded-xl p-4 mb-8 space-y-3">
                   <div className="flex items-center text-sm text-gray-700">
                     <User className="w-4 h-4 mr-3 text-blue-600" />
@@ -98,7 +98,7 @@ export default function PreviewDialog({ item, onClose }: PreviewDialogProps) {
               </div>
 
               {/* Footer Tombol Unduh */}
-              <div className="p-6 border-t border-gray-100 bg-white">
+              <div className="p-6 border-t border-gray-100 bg-white mt-auto">
                 <button
                   onClick={() =>
                     imageDownloader(item.drive_image_id, item.title)

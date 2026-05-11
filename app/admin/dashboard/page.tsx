@@ -1,6 +1,7 @@
 "use client";
 
 import { ArtikelModel } from "@/data/dummies";
+import { FotoModel } from "@/data/foto-model";
 import { InfografisModel } from "@/data/infografis-model";
 import { useFetch } from "@/hooks/use-fetch";
 import {
@@ -32,14 +33,19 @@ export default function AdminDashboardPage() {
     isLoading: loadArtikel,
     error: errArtikel,
   } = useFetch<ArtikelModel>("/api/artikel");
+  const {
+    data: dataFoto,
+    isLoading: loadFoto,
+    error: errFoto,
+  } = useFetch<FotoModel>("/api/foto");
   const myInfografisCount = dataInfografis.length;
   const myArtikelCount = dataArtikel.length;
-  const myPhotoCount = 2;
+  const myPhotoCount = dataFoto.length;
   const myVideoCount = 0;
 
-  const totalInfografis = 21;
-  const totalArtikel = 18;
-  const totalPhoto = 12;
+  const totalInfografis = dataInfografis.length;
+  const totalArtikel = dataArtikel.length;
+  const totalPhoto = dataFoto.length;
   const totalVideo = 3;
   const totalUsers = 5;
 

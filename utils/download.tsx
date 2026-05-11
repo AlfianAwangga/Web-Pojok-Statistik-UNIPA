@@ -1,28 +1,19 @@
-export const imageDownloader = async (
-  driveImageId: string,
-  title: string,
-): Promise<void> => {
-  try {
-    const downloadUrl = `https://drive.google.com/uc?export=download&id=${driveImageId}`;
+export const imageDownloader = (driveImageId: string, title: string): void => {
+  // URL ini secara otomatis memaksa browser untuk mengunduh file
+  const downloadUrl = `https://drive.google.com/uc?export=download&id=${driveImageId}`;
 
-    const response = await fetch(downloadUrl);
+  const link = document.createElement("a");
+  link.href = downloadUrl;
 
-    if (!response.ok) throw new Error("Gagal download");
+  // Atribut download terkadang diabaikan oleh browser untuk link beda domain (cross-origin),
+  // namun header dari Google Drive biasanya akan tetap memaksa file untuk diunduh.
+  link.setAttribute("download", `${title}.jpg`);
 
-    const blob = await response.blob();
-    const url = URL.createObjectURL(blob);
+  // Tambahkan target _blank agar jika browser memblokir unduhan langsung,
+  // ia tidak akan merusak tampilan halaman web Anda saat ini
+  link.target = "_blank";
 
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = `${title}.jpg`;
-
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-
-    URL.revokeObjectURL(url);
-  } catch (error) {
-    const fallbackUrl = `https://drive.google.com/file/d/${driveImageId}/view`;
-    window.open(fallbackUrl, "_blank");
-  }
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
 };

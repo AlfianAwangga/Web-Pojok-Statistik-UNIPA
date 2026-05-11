@@ -1,7 +1,9 @@
 "use client";
 
 import PreviewImage from "@/components/ui/preview-image";
-import { FotoModel, fotoData, videoData } from "@/data/dummies";
+import { fotoData, videoData } from "@/data/dummies";
+import { FotoModel } from "@/data/foto-model";
+import { useFetch } from "@/hooks/use-fetch";
 import { AnimatePresence, motion } from "framer-motion";
 import {
   Calendar,
@@ -10,9 +12,13 @@ import {
   MapPin,
   PlayCircle,
 } from "lucide-react";
+import Image from "next/image";
 import { useState } from "react";
 
 export default function HalamanGaleri() {
+  // Ambil data dari API Route
+  const { data: dataFoto, isLoading, error } = useFetch<FotoModel>("/api/foto");
+
   // State utama untuk mengontrol Tab yang sedang aktif
   const [activeTab, setActiveTab] = useState("foto"); // Nilai bisa 'foto' atau 'video'
 
@@ -73,7 +79,7 @@ export default function HalamanGaleri() {
               transition={{ duration: 0.3 }}
               className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6"
             >
-              {fotoData.map((foto) => (
+              {dataFoto.map((foto) => (
                 <div
                   key={foto.id}
                   className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden group cursor-pointer hover:shadow-xl transition-all"
@@ -81,10 +87,13 @@ export default function HalamanGaleri() {
                 >
                   {/* Thumbnail dengan efek Zoom saat di-hover */}
                   <div className="relative h-64 overflow-hidden bg-gray-200">
-                    <img
-                      src={foto.url}
+                    <Image
+                      src={foto.image_url}
                       alt={foto.caption}
-                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+                      fill
+                      sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                      priority
+                      className="w-full h-full object-cover object-top group-hover:scale-105 transition-transform duration-500"
                     />
                     {/* Overlay hitam tipis muncul saat di-hover untuk fokus ke teks */}
                     <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-5">
@@ -95,7 +104,7 @@ export default function HalamanGaleri() {
                         <MapPin className="w-3 h-3 mr-1" /> {foto.lokasi}
                       </div>
                       <div className="flex items-center text-xs text-gray-300">
-                        <Calendar className="w-3 h-3 mr-1" /> {foto.tanggal}
+                        <Calendar className="w-3 h-3 mr-1" /> {foto.upload_date}
                       </div>
                     </div>
                   </div>

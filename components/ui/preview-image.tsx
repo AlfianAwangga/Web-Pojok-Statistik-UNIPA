@@ -1,7 +1,9 @@
 "use client";
-import { FotoModel } from "@/data/dummies";
+
+import { FotoModel } from "@/data/foto-model";
 import { AnimatePresence, motion } from "framer-motion";
 import { Calendar, MapPin } from "lucide-react";
+import Image from "next/image";
 
 interface prevImageProps {
   item: FotoModel | null;
@@ -28,9 +30,11 @@ export default function previewImage({ item, onClose }: prevImageProps) {
             exit={{ opacity: 0, scale: 0.9 }}
             className="relative w-full max-w-5xl z-10 flex flex-col items-center"
           >
-            <img
-              src={item.url}
+            <Image
+              src={item.image_url}
               alt={item.caption}
+              width={1000}
+              height={1000}
               className="w-full max-h-[75vh] object-contain rounded-lg shadow-2xl mb-6"
             />
 
@@ -43,7 +47,7 @@ export default function previewImage({ item, onClose }: prevImageProps) {
                 </span>
                 <span className="flex items-center">
                   <Calendar className="w-4 h-4 mr-1 text-yellow-400" />{" "}
-                  {item.tanggal}
+                  {item.upload_date}
                 </span>
               </div>
             </div>
