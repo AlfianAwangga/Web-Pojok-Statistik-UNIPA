@@ -18,6 +18,8 @@ import {
 import { useMemo, useState } from "react";
 import { useFetch } from "@/hooks/use-fetch";
 import { useAuth } from "@/hooks/use-auth";
+import { useNotification } from "@/hooks/use-notification";
+import AlertNotification from "@/components/ui/alert-notification";
 
 // INTERFACES
 interface ArticleSection {
@@ -38,7 +40,8 @@ interface FormData {
 export default function ArtikelAdmin() {
   // KONFIGURASI
   const { user } = useAuth();
-  const currentUser = "Author 1"; // Simulasi user yang sedang login
+  const { showAlert, alertType, alertMessage, showNotification } =
+    useNotification();
   const ITEMS_PER_PAGES = 10; // Konfigurasi jumlah data per halaman pagination
 
   // Ambil data dari API Route
@@ -46,6 +49,7 @@ export default function ArtikelAdmin() {
     data: dataArtikel,
     isLoading,
     error,
+    refetch,
   } = useFetch<ArtikelModel>("/api/artikel");
 
   // STATES
@@ -154,6 +158,25 @@ export default function ArtikelAdmin() {
     }));
   };
 
+  const resetForm = () => {
+    setFormData({
+      title: "",
+      category: "",
+      excerpt: "",
+      tags: "",
+      status: "published",
+      sections: [
+        {
+          id: 1,
+          type: "paragraph",
+          content: "",
+        },
+      ],
+    });
+
+    setSelectedFile(null);
+  };
+
   const handleInputChange = (
     field: keyof FormData,
     value: string | boolean,
@@ -192,7 +215,7 @@ export default function ArtikelAdmin() {
       body.append("file", selectedFile);
       body.append("category", formData.category);
       body.append("excerpt", formData.excerpt);
-      body.append("author", currentUser); // Diambil dari variable currentUser di atas
+      body.append("author", user!.nama); // Diambil dari variable currentUser di atas
       body.append("tags", formData.tags);
       body.append("status", formData.status);
 
@@ -217,19 +240,10 @@ export default function ArtikelAdmin() {
       const result = await response.json();
 
       if (result.success) {
-        alert("Artikel berhasil dipublikasikan!");
-
-        // 4. Reset Form & Tutup Modal
-        // setFormData({
-        //   title: "",
-        //   category: categories[0] || "Umum",
-        //   excerpt: "",
-        //   tags: "",
-        //   status: "published",
-        //   sections: [{ id: Date.now(), type: "paragraph", content: "" }],
-        // });
+        showNotification("success", "Data berhasil ditambahkan");
         setIsModalOpen(false);
-        window.location.reload();
+        resetForm();
+        await refetch();
       } else {
         alert(`Gagal: ${result.message}`);
       }
@@ -292,6 +306,12 @@ export default function ArtikelAdmin() {
           </div>
         </div>
 
+        <AlertNotification
+          show={showAlert}
+          message={alertMessage}
+          type={alertType}
+        />
+
         <div className="overflow-x-auto">
           {/* KOMPONEN TABEL */}
           <div className="overflow-x-auto">
@@ -313,6 +333,7 @@ export default function ArtikelAdmin() {
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         onSubmit={handleSubmit}
+        isSubmitting={isSubmitting}
         title="Tambah Artikel Statistik"
       >
         <div className="space-y-6">

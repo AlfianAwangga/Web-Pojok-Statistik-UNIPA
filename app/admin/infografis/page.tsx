@@ -8,6 +8,8 @@ import { useFetch } from "@/hooks/use-fetch";
 import { CheckCircle, Plus, Search, UploadCloud } from "lucide-react";
 import { useMemo, useState } from "react";
 import { useAuth } from "@/hooks/use-auth";
+import AlertNotification from "@/components/ui/alert-notification";
+import { useNotification } from "@/hooks/use-notification";
 
 // INTERFACES
 interface FormData {
@@ -19,6 +21,8 @@ interface FormData {
 export default function InfografisAdmin() {
   // KONFIGURASI
   const { user } = useAuth(); // Simulasi user yang sedang login
+  const { showAlert, alertType, alertMessage, showNotification } =
+    useNotification();
   const ITEMS_PER_PAGES = 10; // Konfigurasi jumlah data per halaman pagination
 
   // Ambil data dari API Route
@@ -26,6 +30,7 @@ export default function InfografisAdmin() {
     data: dataInfografis,
     isLoading,
     error,
+    refetch,
   } = useFetch<InfografisModel>("/api/infografis");
 
   // STATES
@@ -85,6 +90,16 @@ export default function InfografisAdmin() {
   }, [dataInfografis, searchTerm]);
 
   // EVENT HANDLERS
+  const resetForm = () => {
+    setFormData({
+      title: "",
+      category: "",
+      description: "",
+    });
+
+    setSelectedFile(null);
+  };
+
   const handleEdit = (item: InfografisModel) =>
     console.log("Edit Infografis:", item.id);
   const handleDelete = (item: InfografisModel) =>
@@ -108,6 +123,7 @@ export default function InfografisAdmin() {
     formDataUpload.append("file", selectedFile);
     formDataUpload.append("title", formData.title);
     formDataUpload.append("category", formData.category);
+    formDataUpload.append("author", user!.nama);
     formDataUpload.append("description", formData.description);
     try {
       setUploading(true);
@@ -117,11 +133,12 @@ export default function InfografisAdmin() {
       });
       const result = await res.json();
       if (result.success) {
-        alert("Berhasil upload!");
+        showNotification("success", "Data berhasil ditambahkan");
         setIsModalOpen(false);
-        window.location.reload();
+        resetForm();
+        await refetch();
       } else {
-        alert("Gagal upload");
+        showNotification("error", "Gagal menambahkan data");
       }
     } catch (error) {
       console.error(error);
@@ -181,6 +198,12 @@ export default function InfografisAdmin() {
           </div>
         </div>
 
+        <AlertNotification
+          show={showAlert}
+          message={alertMessage}
+          type={alertType}
+        />
+
         {/* KOMPONEN TABEL */}
         <div className="overflow-x-auto">
           <DataTable
@@ -199,6 +222,7 @@ export default function InfografisAdmin() {
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         onSubmit={handleSubmit}
+        isSubmitting={uploading}
         title="Unggah Karya Infografis"
       >
         <div className="space-y-5">

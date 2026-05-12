@@ -1,11 +1,13 @@
 "use client";
 
+import AlertNotification from "@/components/ui/alert-notification";
 import { Column, DataTable } from "@/components/ui/data-table";
 import FormModal from "@/components/ui/form-modal";
 import { FotoModel } from "@/data/foto-model";
 import { UserModel } from "@/data/user-model";
 import { useAuth } from "@/hooks/use-auth";
 import { useFetch } from "@/hooks/use-fetch";
+import { useNotification } from "@/hooks/use-notification";
 import { filterTableData } from "@/utils/search";
 import { CheckCircle, Plus, Search, UploadCloud } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
@@ -19,10 +21,17 @@ interface FormData {
 export default function DokumentasiAdmin() {
   // KONFIGURASI
   const { user } = useAuth();
+  const { showAlert, alertType, alertMessage, showNotification } =
+    useNotification();
   const ITEMS_PER_PAGES = 10; // Konfigurasi jumlah data per halaman pagination
 
   // Ambil data dari API Route
-  const { data: dataFoto, isLoading, error } = useFetch<FotoModel>("/api/foto");
+  const {
+    data: dataFoto,
+    isLoading,
+    error,
+    refetch,
+  } = useFetch<FotoModel>("/api/foto");
 
   // STATES
   // States untuk UI
@@ -74,6 +83,15 @@ export default function DokumentasiAdmin() {
   }, [dataFoto, searchTerm]);
 
   // EVENT HANDLERS
+  const resetForm = () => {
+    setFormData({
+      caption: "",
+      location: "",
+    });
+
+    setSelectedFile(null);
+  };
+
   const handleSubmit = async () => {
     if (!selectedFile) return alert("Pilih file dulu!");
     const formDataUpload = new FormData();
@@ -89,11 +107,12 @@ export default function DokumentasiAdmin() {
       });
       const result = await res.json();
       if (result.success) {
-        alert("Berhasil upload!");
+        showNotification("success", "Data berhasil ditambahkan");
         setIsModalOpen(false);
-        window.location.reload();
+        resetForm();
+        await refetch();
       } else {
-        alert("Gagal upload");
+        showNotification("error", "Gagal menambahkan data");
       }
     } catch (error) {
       console.error(error);
@@ -170,6 +189,11 @@ export default function DokumentasiAdmin() {
             />
           </div>
         </div>
+        <AlertNotification
+          show={showAlert}
+          message={alertMessage}
+          type={alertType}
+        />
 
         <div className="overflow-x-auto">
           {/* KOLOM TABEL */}
@@ -189,6 +213,7 @@ export default function DokumentasiAdmin() {
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         onSubmit={handleSubmit}
+        isSubmitting={uploading}
         title="Tambah Foto Dokumentasi"
       >
         <div className="space-y-5">

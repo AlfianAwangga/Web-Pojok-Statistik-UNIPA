@@ -1,7 +1,7 @@
+import { google } from "googleapis";
 import { auth } from "./google-auth";
 import { uploadToDrive } from "./google-drive";
 import { saveToSheets } from "./google-sheets";
-import { google } from "googleapis";
 
 export async function getInfografis() {
   try {
@@ -77,6 +77,7 @@ export async function createInfografis(req: Request) {
     const title = formData.get("title") as string;
     const category = formData.get("category") as string;
     const description = formData.get("description") as string;
+    const author = formData.get("author") as string;
 
     // 🔥 Sangat disarankan untuk mengaktifkan kembali validasi ini
     if (!file || !title) {
@@ -89,7 +90,6 @@ export async function createInfografis(req: Request) {
     const lastId = await getInfografisLastId();
     const id = lastId + 1;
 
-    const author = "Admin";
     const date = new Date().toLocaleDateString("id-ID", {
       year: "numeric",
       month: "2-digit",
@@ -117,7 +117,7 @@ export async function createInfografis(req: Request) {
           id,
           title,
           category,
-          author,
+          author!,
           date,
           description,
           fileId || "",

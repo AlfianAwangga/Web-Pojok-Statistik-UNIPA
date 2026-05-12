@@ -72,14 +72,14 @@ export default function Navbar() {
             {user ? (
               <Link
                 href="/admin/dashboard"
-                className="rounded-lg bg-purple-800 px-4 py-2 text-sm font-semibold text-white hover:bg-purple-700"
+                className="flex items-center justify-center leading-none rounded-lg bg-purple-800 px-4 py-2 ms-2 text-sm font-semibold text-white hover:bg-purple-700"
               >
                 Dashboard
               </Link>
             ) : (
               <Link
                 href="/login"
-                className="rounded-lg border border-purple-800 px-4 py-2 text-sm font-semibold text-purple-800 hover:bg-purple-50"
+                className="flex items-center justify-center leading-none rounded-lg border border-purple-800 px-4 py-2 ms-2 text-sm font-semibold text-purple-800 hover:bg-purple-50"
               >
                 Login
               </Link>

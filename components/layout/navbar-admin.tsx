@@ -12,6 +12,8 @@ import {
   PanelLeftOpen,
   BarChart,
   BarChart3,
+  Users2,
+  LogOut,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -162,7 +164,8 @@ export default function NavbarAdmin() {
                 isCollapsed ? "justify-center px-2 py-3" : "gap-3 px-4 py-3"
               } `}
             >
-              Pengguna
+              <Users2 className="w-5 h-5 shrink-0" />
+              {!isCollapsed && <span>Pengguna</span>}
             </Link>
           </>
         )}
@@ -183,17 +186,23 @@ export default function NavbarAdmin() {
           <Settings className="w-5 h-5 shrink-0" />
           {!isCollapsed && <span>Akun</span>}
         </button>
-
+      </div>
+      <div className="p-6 border-t border-purple-800 pt-4">
         {user ? (
           <button
             onClick={logout}
             className={`
-            w-full flex items-center rounded-lg text-sm font-medium
-            hover:bg-purple-800 text-white transition-all
-            ${isCollapsed ? "justify-center px-2 py-3" : "px-4 py-3 gap-3"}
-          `}
+        w-full flex items-center rounded-lg text-sm font-medium
+        transition-all
+        ${isCollapsed ? "justify-center px-2 py-3" : "px-4 py-3 gap-3"}
+        text-red-200
+        hover:bg-red-500/20
+        hover:text-red-100
+      `}
           >
-            Logout
+            <LogOut className="w-5 h-5 shrink-0" />
+
+            {!isCollapsed && <span>Logout</span>}
           </button>
         ) : (
           <div className="hidden"></div>

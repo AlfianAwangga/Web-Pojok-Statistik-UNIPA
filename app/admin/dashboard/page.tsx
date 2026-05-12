@@ -1,11 +1,16 @@
 "use client";
 
-import { ArtikelModel } from "@/data/dummies";
+import { ArtikelModel } from "@/data/artikel-model";
 import { FotoModel } from "@/data/foto-model";
 import { InfografisModel } from "@/data/infografis-model";
 import { UserModel } from "@/data/user-model";
 import { useAuth } from "@/hooks/use-auth";
 import { useFetch } from "@/hooks/use-fetch";
+import {
+  getMyInfografisCount,
+  getMyArtikelCount,
+  getMyPhotoCount,
+} from "@/utils/dashboard-services";
 import {
   BookAIcon,
   BookOpen,
@@ -29,9 +34,10 @@ export default function AdminDashboardPage() {
   const { data: dataArtikel } = useFetch<ArtikelModel>("/api/artikel");
   const { data: dataFoto } = useFetch<FotoModel>("/api/foto");
   const { data: dataUsers } = useFetch<UserModel>("/api/users");
-  const myInfografisCount = dataInfografis.length;
-  const myArtikelCount = dataArtikel.length;
-  const myPhotoCount = dataFoto.length;
+
+  const myInfografisCount = getMyInfografisCount(dataInfografis, user?.nama);
+  const myArtikelCount = getMyArtikelCount(dataArtikel, user?.nama);
+  const myPhotoCount = getMyPhotoCount(dataFoto, user?.nama);
   const myVideoCount = 0;
 
   const totalInfografis = dataInfografis.length;

@@ -98,7 +98,7 @@ export async function createArtikel(req: Request) {
     const title = formData.get("title") as string;
     const category = formData.get("category") as string;
     const excerpt = formData.get("excerpt") as string;
-    const author = (formData.get("author") as string) || "Admin";
+    const author = formData.get("author") as string;
     const tags = formData.get("tags") as string;
     const status = formData.get("status") as string;
     const sectionsRaw = formData.get("sections") as string; // JSON string dari frontend

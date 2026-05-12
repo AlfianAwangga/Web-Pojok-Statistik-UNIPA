@@ -7,6 +7,7 @@ interface FormModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSubmit: () => void;
+  isSubmitting?: boolean;
   title: string;
   children: React.ReactNode;
 }
@@ -15,6 +16,7 @@ export default function FormModal({
   isOpen,
   onClose,
   onSubmit,
+  isSubmitting,
   title,
   children,
 }: FormModalProps) {
@@ -60,11 +62,17 @@ export default function FormModal({
 
               <button
                 type="submit"
+                disabled={isSubmitting}
                 onClick={onSubmit}
-                className="flex items-center rounded-lg bg-purple-600 px-5 py-2.5 text-sm font-bold text-white transition hover:bg-purple-700"
+                className={`flex items-center rounded-lg px-5 py-2.5 text-sm font-bold text-white transition ${
+                  isSubmitting
+                    ? "bg-purple-400 cursor-not-allowed opacity-70"
+                    : "bg-purple-600 hover:bg-purple-700"
+                }`}
               >
                 <Save className="mr-2 h-4 w-4" />
-                Tambahkan
+
+                {isSubmitting ? "Menambahkan data..." : "Tambahkan"}
               </button>
             </div>
           </motion.div>
