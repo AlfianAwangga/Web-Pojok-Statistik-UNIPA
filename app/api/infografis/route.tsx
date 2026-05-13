@@ -1,5 +1,9 @@
 import { NextResponse } from "next/server";
-import { createInfografis, getInfografis } from "@/utils/infografis-services";
+import {
+  createInfografis,
+  getInfografis,
+  updateInfografis,
+} from "@/utils/infografis-services";
 
 export async function GET() {
   try {
@@ -16,6 +20,14 @@ export async function GET() {
 
 export async function POST(req: Request) {
   const result = await createInfografis(req);
+
+  return NextResponse.json(result, {
+    status: result.success ? 200 : 500,
+  });
+}
+
+export async function PUT(req: Request) {
+  const result = await updateInfografis(req);
 
   return NextResponse.json(result, {
     status: result.success ? 200 : 500,

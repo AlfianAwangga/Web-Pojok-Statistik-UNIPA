@@ -65,6 +65,7 @@ export default function ArtikelAdmin() {
   // const categories = getUniqueCategories1(dataArtikel);
 
   // State untuk form artikel
+  const [editingData, setEditingData] = useState<ArtikelModel | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState<FormData>({
     title: "",
@@ -175,6 +176,8 @@ export default function ArtikelAdmin() {
     });
 
     setSelectedFile(null);
+    setPreviewUrl(null);
+    setEditingData(null);
   };
 
   const handleInputChange = (
@@ -194,14 +197,42 @@ export default function ArtikelAdmin() {
   };
 
   // Handler Button
-  const handleEdit = (item: ArtikelModel) =>
-    console.log("Edit Infografis:", item.id);
+  const handleEdit = (item: ArtikelModel) => {
+    setEditingData(item);
+
+    setFormData({
+      title: item.title,
+      category: item.category,
+      excerpt: item.excerpt,
+      tags: Array.isArray(item.tags) ? item.tags.join(", ") : item.tags || "",
+      status: item.status,
+      sections:
+        item.sections?.length > 0
+          ? item.sections.map((section) => ({
+              id: section.id,
+              type: section.type,
+              content: section.content,
+            }))
+          : [
+              {
+                id: 1,
+                type: "paragraph",
+                content: "",
+              },
+            ],
+    });
+
+    setPreviewUrl(item.thumbnail || null);
+    setSelectedFile(null);
+
+    setIsModalOpen(true);
+  };
   const handleDelete = (item: ArtikelModel) =>
     console.log("Hapus Infografis:", item.id);
 
   const handleSubmit = async () => {
     // 1. Validasi Dasar
-    if (!formData.title.trim() || !selectedFile) {
+    if (!formData.title.trim()) {
       alert("Judul artikel wajib diisi!");
       return;
     }
@@ -211,8 +242,10 @@ export default function ArtikelAdmin() {
       const body = new FormData();
 
       // Data teks dari state
+      if (selectedFile) {
+        body.append("file", selectedFile);
+      }
       body.append("title", formData.title);
-      body.append("file", selectedFile);
       body.append("category", formData.category);
       body.append("excerpt", formData.excerpt);
       body.append("author", user!.nama); // Diambil dari variable currentUser di atas
@@ -232,9 +265,13 @@ export default function ArtikelAdmin() {
 
       // 3. Eksekusi Request ke API Route Next.js
       setIsSubmitting(true);
+      const method = editingData ? "PUT" : "POST";
+      if (editingData) {
+        body.append("id", editingData.id.toString());
+      }
       const response = await fetch("/api/artikel", {
-        method: "POST",
-        body: body,
+        method,
+        body,
       });
 
       const result = await response.json();
@@ -283,7 +320,10 @@ export default function ArtikelAdmin() {
         </div>
 
         <button
-          onClick={() => setIsModalOpen(true)}
+          onClick={() => {
+            resetForm();
+            setIsModalOpen(true);
+          }}
           className="flex items-center rounded-lg bg-purple-800 px-4 py-2.5 text-sm font-bold text-white shadow-sm transition hover:bg-purple-700"
         >
           <Plus className="mr-2 h-4 w-4" />
@@ -331,10 +371,15 @@ export default function ArtikelAdmin() {
       {/* Modal Form */}
       <FormModal
         isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
+        onClose={() => {
+          setIsModalOpen(false);
+          resetForm();
+        }}
         onSubmit={handleSubmit}
         isSubmitting={isSubmitting}
-        title="Tambah Artikel Statistik"
+        title={
+          editingData ? "Edit Artikel Statistik" : "Tambah Artikel Statistik"
+        }
       >
         <div className="space-y-6">
           <div className="flex items-start rounded-lg border border-emerald-200 bg-emerald-50 p-4">

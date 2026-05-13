@@ -1,5 +1,9 @@
 import { NextResponse } from "next/server";
-import { createArtikel, getArtikel } from "@/utils/artikel-services";
+import {
+  createArtikel,
+  getArtikel,
+  updateArtikel,
+} from "@/utils/artikel-services";
 
 export async function GET() {
   try {
@@ -30,6 +34,26 @@ export async function POST(req: Request) {
         message: "Terjadi kesalahan internal server saat memproses artikel.",
       },
       { status: 500 },
+    );
+  }
+}
+
+export async function PUT(req: Request) {
+  try {
+    const result = await updateArtikel(req);
+
+    return NextResponse.json(result, {
+      status: result.success ? 200 : 500,
+    });
+  } catch (error) {
+    return NextResponse.json(
+      {
+        success: false,
+        message: "Gagal update artikel",
+      },
+      {
+        status: 500,
+      },
     );
   }
 }

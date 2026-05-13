@@ -39,6 +39,7 @@ export default function DokumentasiAdmin() {
   const [searchTerm, setSearchTerm] = useState("");
 
   // State untuk form artikel
+  const [editingData, setEditingData] = useState<FotoModel | null>(null);
   const [formData, setFormData] = useState<FormData>({
     caption: "",
     location: "",
@@ -90,39 +91,71 @@ export default function DokumentasiAdmin() {
     });
 
     setSelectedFile(null);
+    setPreviewUrl(null);
+    setEditingData(null);
   };
 
   const handleSubmit = async () => {
-    if (!selectedFile) return alert("Pilih file dulu!");
+    // validasi file hanya saat create
+    if (!selectedFile && !editingData) {
+      showNotification("error", "Pilih file dulu!");
+
+      return;
+    }
+
     const formDataUpload = new FormData();
-    formDataUpload.append("file", selectedFile);
+    // append file hanya jika ada
+    if (selectedFile) {
+      formDataUpload.append("file", selectedFile);
+    }
     formDataUpload.append("uploader", user!?.nama);
     formDataUpload.append("caption", formData.caption);
     formDataUpload.append("location", formData.location);
     try {
       setUploading(true);
+      const method = editingData ? "PUT" : "POST";
+      if (editingData) {
+        formDataUpload.append("id", editingData.id.toString());
+      }
       const res = await fetch("/api/foto", {
-        method: "POST",
+        method: method,
         body: formDataUpload,
       });
       const result = await res.json();
       if (result.success) {
-        showNotification("success", "Data berhasil ditambahkan");
+        showNotification(
+          "success",
+          editingData
+            ? "Data berhasil diperbarui"
+            : "Data berhasil ditambahkan",
+        );
         setIsModalOpen(false);
         resetForm();
         await refetch();
       } else {
-        showNotification("error", "Gagal menambahkan data");
+        showNotification("error", result.message || "Gagal menyimpan data");
       }
     } catch (error) {
       console.error(error);
+      showNotification("error", "Terjadi kesalahan");
     } finally {
       setUploading(false);
     }
   };
 
-  const handleEdit = (item: FotoModel) =>
-    console.log("Edit Infografis:", item.id);
+  const handleEdit = (item: FotoModel) => {
+    setEditingData(item);
+    console.log(item);
+
+    setFormData({
+      caption: item.caption,
+      location: item.lokasi,
+    });
+
+    setPreviewUrl(item.image_url);
+
+    setIsModalOpen(true);
+  };
   const handleDelete = (item: FotoModel) =>
     console.log("Hapus Infografis:", item.id);
 
@@ -168,7 +201,10 @@ export default function DokumentasiAdmin() {
         </div>
 
         <button
-          onClick={() => setIsModalOpen(true)}
+          onClick={() => {
+            resetForm();
+            setIsModalOpen(true);
+          }}
           className="flex items-center rounded-lg bg-purple-800 px-4 py-2.5 text-sm font-bold text-white shadow-sm transition hover:bg-purple-700 active:bg-purple-700"
         >
           <Plus className="mr-2 h-4 w-4" />
@@ -211,10 +247,15 @@ export default function DokumentasiAdmin() {
 
       <FormModal
         isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
+        onClose={() => {
+          setIsModalOpen(false);
+          resetForm();
+        }}
         onSubmit={handleSubmit}
         isSubmitting={uploading}
-        title="Tambah Foto Dokumentasi"
+        title={
+          editingData ? "Edit Foto Dokumentasi" : "Tambah Data Dokumentasi"
+        }
       >
         <div className="space-y-5">
           <div className="flex items-start rounded-lg border border-emerald-200 bg-emerald-50 p-4">
@@ -283,7 +324,7 @@ export default function DokumentasiAdmin() {
 
           <div>
             <label className="mb-1 block text-sm font-semibold text-slate-700">
-              Unggah File Infografis
+              Unggah Dokumentasi
             </label>
 
             <div
@@ -294,6 +335,10 @@ export default function DokumentasiAdmin() {
                 <img
                   src={previewUrl}
                   alt="preview"
+                  onError={(e) => {
+                    console.log("Gagal load image");
+                    e.currentTarget.src = "/file.svg";
+                  }}
                   className="h-full w-auto object-cover rounded-lg"
                 />
               ) : (

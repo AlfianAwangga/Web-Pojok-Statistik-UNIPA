@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { createFoto, getFoto } from "@/utils/foto-services";
+import { createFoto, getFoto, updateFoto } from "@/utils/foto-services";
 
 export async function GET() {
   try {
@@ -16,6 +16,14 @@ export async function GET() {
 
 export async function POST(req: Request) {
   const result = await createFoto(req);
+
+  return NextResponse.json(result, {
+    status: result.success ? 200 : 500,
+  });
+}
+
+export async function PUT(req: Request) {
+  const result = await updateFoto(req);
 
   return NextResponse.json(result, {
     status: result.success ? 200 : 500,

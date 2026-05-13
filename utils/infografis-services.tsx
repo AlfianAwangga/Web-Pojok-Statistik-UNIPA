@@ -3,7 +3,25 @@ import { auth } from "./google-auth";
 import { uploadToDrive } from "./google-drive";
 import { saveToSheets } from "./google-sheets";
 
+let cacheInfografis: any[] = [];
+let cacheTime = 0;
+
+const CACHE_DURATION = 30 * 1000; // 30 detik
+
+function clearInfografisCache() {
+  cacheInfografis = [];
+  cacheTime = 0;
+}
+
 export async function getInfografis() {
+  const now = Date.now();
+
+  // Gunakan cache jika belum expired
+  if (cacheInfografis.length > 0 && now - cacheTime < CACHE_DURATION) {
+    console.log("Menggunakan cache infografis");
+
+    return cacheInfografis;
+  }
   try {
     const spreadsheetId = process.env.SPREADSHEET_ID;
     if (!spreadsheetId) throw new Error("SPREADSHEET_ID belum diatur di .env");
@@ -19,7 +37,7 @@ export async function getInfografis() {
 
     if (!rows || rows.length === 0) return [];
 
-    return rows.map((row) => {
+    cacheInfografis = rows.map((row) => {
       const fileId = row[6] || "";
 
       return {
@@ -31,10 +49,13 @@ export async function getInfografis() {
         description: row[5] || "",
         drive_image_id: fileId,
         image_url: fileId
-          ? `https://drive.google.com/uc?export=view&id=${fileId}`
+          ? `https://drive.google.com/thumbnail?id=${fileId}&sz=w1000`
           : "/file.svg",
       };
     });
+
+    cacheTime = now;
+    return cacheInfografis;
   } catch (error) {
     console.error("Error getInfografis:", error);
     return [];
@@ -133,6 +154,8 @@ export async function createInfografis(req: Request) {
       };
     }
 
+    clearInfografisCache();
+
     return {
       success: true,
       message: "Berhasil upload infografis",
@@ -156,6 +179,117 @@ export async function createInfografis(req: Request) {
         error instanceof Error
           ? error.message
           : "Terjadi kesalahan internal server saat upload",
+    };
+  }
+}
+
+export async function updateInfografis(req: Request) {
+  try {
+    const formData = await req.formData();
+
+    const id = formData.get("id") as string;
+    const title = formData.get("title") as string;
+    const category = formData.get("category") as string;
+    const description = formData.get("description") as string;
+
+    const spreadsheetId = process.env.SPREADSHEET_ID;
+
+    if (!spreadsheetId) {
+      throw new Error("SPREADSHEET_ID belum diatur");
+    }
+
+    const sheets = google.sheets({
+      version: "v4",
+      auth,
+    });
+
+    // Ambil seluruh data
+    const response = await sheets.spreadsheets.values.get({
+      spreadsheetId,
+      range: "infografis!A2:H",
+    });
+
+    const rows = response.data.values;
+
+    if (!rows || rows.length === 0) {
+      return {
+        success: false,
+        message: "Data tidak ditemukan",
+      };
+    }
+
+    // Cari index berdasarkan ID
+    const rowIndex = rows.findIndex((row) => row[0] === id);
+
+    if (rowIndex === -1) {
+      return {
+        success: false,
+        message: "Data tidak ditemukan",
+      };
+    }
+
+    // Simpan data lama
+    const oldRow = rows[rowIndex];
+
+    // File lama
+    let fileId = oldRow[6];
+    let imageUrl = oldRow[7];
+
+    // Jika user upload gambar baru
+    const file = formData.get("file") as File | null;
+
+    if (file && file.size > 0) {
+      const folderId = process.env.GOOGLE_DRIVE_FOLDER_INFOGRAFIS_ID as string;
+
+      const uploadResult = await uploadToDrive(file, folderId);
+
+      if (!uploadResult.success) {
+        return {
+          success: false,
+          message: "Gagal upload gambar baru",
+        };
+      }
+
+      fileId = uploadResult.fileId || "";
+      imageUrl = uploadResult.imageUrl || "";
+    }
+
+    // Update row
+    const updatedRow = [
+      oldRow[0], // id tetap
+      title,
+      category,
+      oldRow[3], // author tetap
+      oldRow[4], // tanggal tetap
+      description,
+      fileId,
+      imageUrl,
+    ];
+
+    // +2 karena sheet dimulai dari row ke-2
+    const targetRow = rowIndex + 2;
+
+    await sheets.spreadsheets.values.update({
+      spreadsheetId,
+      range: `infografis!A${targetRow}:H${targetRow}`,
+      valueInputOption: "USER_ENTERED",
+      requestBody: {
+        values: [updatedRow],
+      },
+    });
+
+    clearInfografisCache();
+
+    return {
+      success: true,
+      message: "Data berhasil diperbarui",
+    };
+  } catch (error) {
+    console.error("Error updateInfografis:", error);
+
+    return {
+      success: false,
+      message: error instanceof Error ? error.message : "Gagal update data",
     };
   }
 }

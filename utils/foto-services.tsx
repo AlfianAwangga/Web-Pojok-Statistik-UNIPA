@@ -3,7 +3,25 @@ import { uploadToDrive } from "./google-drive";
 import { saveToSheets } from "./google-sheets";
 import { google } from "googleapis";
 
+let cacheFoto: any[] = [];
+let cacheTime = 0;
+
+const CACHE_DURATION = 30 * 1000; // 30 detik
+
+function clearCacheFoto() {
+  cacheFoto = [];
+  cacheTime = 0;
+}
+
 export async function getFoto() {
+  const now = Date.now();
+
+  // Gunakan cache jika belum expired
+  if (cacheFoto.length > 0 && now - cacheTime < CACHE_DURATION) {
+    console.log("Menggunakan cache foto");
+
+    return cacheFoto;
+  }
   try {
     const spreadsheetId = process.env.SPREADSHEET_ID;
     if (!spreadsheetId) throw new Error("SPREADSHEET_ID belum diatur di .env");
@@ -19,7 +37,7 @@ export async function getFoto() {
 
     if (!rows || rows.length === 0) return [];
 
-    return rows.map((row) => {
+    cacheFoto = rows.map((row) => {
       const fileId = row[5] || "";
 
       return {
@@ -30,10 +48,13 @@ export async function getFoto() {
         uploader: row[4] || "",
         drive_image_id: fileId,
         image_url: fileId
-          ? `https://drive.google.com/uc?export=view&id=${fileId}`
+          ? `https://drive.google.com/thumbnail?id=${fileId}&sz=w1000`
           : "/file.svg",
       };
     });
+
+    cacheTime = now;
+    return cacheFoto;
   } catch (error) {
     console.error("Error getInfografis:", error);
     return [];
@@ -122,6 +143,8 @@ export async function createFoto(req: Request) {
       };
     }
 
+    clearCacheFoto();
+
     return {
       success: true,
       message: "Berhasil upload infografis",
@@ -144,6 +167,112 @@ export async function createFoto(req: Request) {
         error instanceof Error
           ? error.message
           : "Terjadi kesalahan internal server saat upload",
+    };
+  }
+}
+
+export async function updateFoto(req: Request) {
+  try {
+    const formData = await req.formData();
+
+    const id = Number(formData.get("id"));
+    const caption = formData.get("caption") as string;
+    const location = formData.get("location") as string;
+    const uploader = formData.get("uploader") as string;
+    const file = formData.get("file") as File | null;
+
+    const spreadsheetId = process.env.SPREADSHEET_ID;
+    const folderId = process.env.GOOGLE_DRIVE_FOLDER_FOTO_ID as string;
+
+    if (!spreadsheetId) {
+      throw new Error("SPREADSHEET_ID belum diatur");
+    }
+
+    const sheets = google.sheets({ version: "v4", auth });
+
+    // Ambil seluruh data
+    const response = await sheets.spreadsheets.values.get({
+      spreadsheetId,
+      range: "foto!A2:G",
+    });
+
+    const rows = response.data.values || [];
+
+    // Cari index data berdasarkan id
+    const rowIndex = rows.findIndex((row) => Number(row[0]) === id);
+
+    if (rowIndex === -1) {
+      return {
+        success: false,
+        message: "Data foto tidak ditemukan",
+      };
+    }
+
+    const existingRow = rows[rowIndex];
+
+    let fileId = existingRow[5] || "";
+
+    // Upload gambar baru jika ada
+    if (file && file.size > 0) {
+      const uploadResult = await uploadToDrive(file, folderId);
+
+      if (!uploadResult.success) {
+        return {
+          success: false,
+          message: `Gagal upload gambar: ${uploadResult.error}`,
+        };
+      }
+
+      fileId = uploadResult.fileId || "";
+    }
+
+    const imageUrl = fileId
+      ? `https://drive.google.com/uc?export=view&id=${fileId}`
+      : "/file.svg";
+
+    // Update row di spreadsheet
+    await sheets.spreadsheets.values.update({
+      spreadsheetId,
+      range: `foto!A${rowIndex + 2}:G${rowIndex + 2}`,
+      valueInputOption: "RAW",
+      requestBody: {
+        values: [
+          [
+            id,
+            caption,
+            location,
+            existingRow[3], // upload_date tetap
+            uploader,
+            fileId,
+            imageUrl,
+          ],
+        ],
+      },
+    });
+
+    clearCacheFoto();
+
+    return {
+      success: true,
+      message: "Foto berhasil diperbarui",
+      data: {
+        id,
+        caption,
+        location,
+        uploader,
+        drive_image_id: fileId,
+        image_url: imageUrl,
+      },
+    };
+  } catch (error) {
+    console.error("Error updateFoto:", error);
+
+    return {
+      success: false,
+      message:
+        error instanceof Error
+          ? error.message
+          : "Terjadi kesalahan saat update foto",
     };
   }
 }

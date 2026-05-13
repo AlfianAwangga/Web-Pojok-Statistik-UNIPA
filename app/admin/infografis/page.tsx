@@ -51,6 +51,7 @@ export default function InfografisAdmin() {
     category: "",
     description: "",
   });
+  const [editingData, setEditingData] = useState<InfografisModel | null>(null);
 
   // KONFIGURASI TABEL
   // cek itemnya milik user atau bukan
@@ -98,10 +99,24 @@ export default function InfografisAdmin() {
     });
 
     setSelectedFile(null);
+    setPreviewUrl(null);
+    setEditingData(null);
   };
 
-  const handleEdit = (item: InfografisModel) =>
-    console.log("Edit Infografis:", item.id);
+  const handleEdit = (item: InfografisModel) => {
+    setEditingData(item);
+
+    setFormData({
+      title: item.title,
+      category: item.category,
+      description: item.description,
+    });
+
+    setPreviewUrl(item.image_url);
+
+    setIsModalOpen(true);
+  };
+
   const handleDelete = (item: InfografisModel) =>
     console.log("Hapus Infografis:", item.id);
   const handleInputChange = (field: keyof FormData, value: string) => {
@@ -118,30 +133,52 @@ export default function InfografisAdmin() {
   };
 
   const handleSubmit = async () => {
-    if (!selectedFile) return alert("Pilih file dulu!");
+    // validasi file hanya saat create
+    if (!selectedFile && !editingData) {
+      showNotification("error", "Pilih file dulu!");
+
+      return;
+    }
+
     const formDataUpload = new FormData();
-    formDataUpload.append("file", selectedFile);
+
+    // append file hanya jika ada
+    if (selectedFile) {
+      formDataUpload.append("file", selectedFile);
+    }
     formDataUpload.append("title", formData.title);
     formDataUpload.append("category", formData.category);
     formDataUpload.append("author", user!.nama);
     formDataUpload.append("description", formData.description);
+
     try {
       setUploading(true);
+      const method = editingData ? "PUT" : "POST";
+      if (editingData) {
+        formDataUpload.append("id", editingData.id.toString());
+      }
       const res = await fetch("/api/infografis", {
-        method: "POST",
+        method,
         body: formDataUpload,
       });
       const result = await res.json();
       if (result.success) {
-        showNotification("success", "Data berhasil ditambahkan");
+        showNotification(
+          "success",
+          editingData
+            ? "Data berhasil diperbarui"
+            : "Data berhasil ditambahkan",
+        );
         setIsModalOpen(false);
         resetForm();
         await refetch();
       } else {
-        showNotification("error", "Gagal menambahkan data");
+        showNotification("error", result.message || "Gagal menyimpan data");
       }
     } catch (error) {
       console.error(error);
+
+      showNotification("error", "Terjadi kesalahan");
     } finally {
       setUploading(false);
     }
@@ -175,7 +212,10 @@ export default function InfografisAdmin() {
         </div>
 
         <button
-          onClick={() => setIsModalOpen(true)}
+          onClick={() => {
+            resetForm();
+            setIsModalOpen(true);
+          }}
           className="flex items-center rounded-lg bg-purple-800 px-4 py-2.5 text-sm font-bold text-white shadow-sm transition hover:bg-purple-700"
         >
           <Plus className="mr-2 h-4 w-4" />
@@ -220,10 +260,15 @@ export default function InfografisAdmin() {
       {/* FORM TAMBAH INFOGRAFIS */}
       <FormModal
         isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
+        onClose={() => {
+          setIsModalOpen(false);
+          resetForm();
+        }}
         onSubmit={handleSubmit}
         isSubmitting={uploading}
-        title="Unggah Karya Infografis"
+        title={
+          editingData ? "Edit Karya Infografis" : "Unggah Karya Infografis"
+        }
       >
         <div className="space-y-5">
           <div className="flex items-start rounded-lg border border-emerald-200 bg-emerald-50 p-4">
@@ -296,6 +341,10 @@ export default function InfografisAdmin() {
                 <img
                   src={previewUrl}
                   alt="preview"
+                  onError={(e) => {
+                    console.log("Gagal load image");
+                    e.currentTarget.src = "/file.svg";
+                  }}
                   className="h-full w-auto object-cover rounded-lg"
                 />
               ) : (

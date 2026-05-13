@@ -3,18 +3,38 @@ import { uploadToDrive } from "./google-drive";
 import { saveToSheets } from "./google-sheets";
 import { google } from "googleapis";
 
+let cacheArtikel: any[] = [];
+let cacheArtikelTime = 0;
+
+const CACHE_DURATION = 30 * 1000; // 30 detik
+
+function clearArtikelCache() {
+  cacheArtikel = [];
+  cacheArtikelTime = 0;
+}
+
 export async function getArtikel() {
   try {
+    const now = Date.now();
+
+    // Gunakan cache jika belum expired
+    if (cacheArtikel.length > 0 && now - cacheArtikelTime < CACHE_DURATION) {
+      console.log("Menggunakan cache artikel");
+
+      return cacheArtikel;
+    }
+
     const spreadsheetId = process.env.SPREADSHEET_ID;
+
     const sheets = google.sheets({ version: "v4", auth });
 
-    // 1. Ambil data dari sheet Articles
+    // Ambil data artikel
     const resArticles = await sheets.spreadsheets.values.get({
       spreadsheetId,
       range: "artikel!A2:K",
     });
 
-    // 2. Ambil data dari sheet Sections
+    // Ambil data section
     const resSections = await sheets.spreadsheets.values.get({
       spreadsheetId,
       range: "artikel_section!A2:D",
@@ -23,11 +43,9 @@ export async function getArtikel() {
     const articleRows = resArticles.data.values || [];
     const sectionRows = resSections.data.values || [];
 
-    // 3. Gabungkan Data (Join Logic)
     const formattedArticles = articleRows.map((row) => {
       const articleId = Number(row[0]);
 
-      // Cari section yang milik artikel ini (artikel_id di kolom index 1)
       const sections = sectionRows
         .filter((sRow) => Number(sRow[1]) === articleId)
         .map((sRow) => ({
@@ -48,17 +66,20 @@ export async function getArtikel() {
         readTime: row[8] || "",
         tags: row[9] ? row[9].split(",").map((t: string) => t.trim()) : [],
         status: row[10] || "draft",
-        sections: sections, // Hasil penggabungan
+        sections,
       };
     });
 
+    // Simpan ke cache
+    cacheArtikel = formattedArticles;
+    cacheArtikelTime = now;
+
     return formattedArticles;
   } catch (error) {
-    console.error("Error getArticles:", error);
+    console.error("Error getArtikel:", error);
     return [];
   }
 }
-
 const generateSlug = (title: string) => {
   return title
     .toLowerCase()
@@ -167,6 +188,8 @@ export async function createArtikel(req: Request) {
       });
     }
 
+    clearArtikelCache();
+
     return {
       success: true,
       message: "Artikel berhasil dibuat otomatis",
@@ -187,5 +210,135 @@ export async function createArtikel(req: Request) {
   } catch (error: any) {
     console.error("Service Error:", error);
     return { success: false, message: error.message };
+  }
+}
+export async function updateArtikel(req: Request) {
+  try {
+    const formData = await req.formData();
+    const spreadsheetId = process.env.SPREADSHEET_ID!;
+    const folderId = process.env.GOOGLE_DRIVE_FOLDER_ARTIKEL_ID as string;
+
+    const id = Number(formData.get("id"));
+
+    const title = formData.get("title") as string;
+    const category = formData.get("category") as string;
+    const excerpt = formData.get("excerpt") as string;
+    const author = formData.get("author") as string;
+    const tags = formData.get("tags") as string;
+    const status = formData.get("status") as string;
+
+    const sectionsRaw = formData.get("sections") as string;
+    const thumbnailFile = formData.get("file") as File | null;
+
+    const sheets = google.sheets({ version: "v4", auth });
+
+    const res = await sheets.spreadsheets.values.get({
+      spreadsheetId,
+      range: "artikel!A2:K",
+    });
+
+    const rows = res.data.values || [];
+
+    const rowIndex = rows.findIndex((row) => Number(row[0]) === id);
+
+    if (rowIndex === -1) {
+      throw new Error("Artikel tidak ditemukan");
+    }
+
+    const actualRow = rowIndex + 2;
+
+    const oldRow = rows[rowIndex];
+
+    let thumbnailUrl = oldRow[5] || "";
+
+    // upload gambar baru jika ada
+    if (thumbnailFile) {
+      const upload = await uploadToDrive(thumbnailFile, folderId);
+
+      if (upload.success) {
+        thumbnailUrl = upload.imageUrl || "";
+      }
+    }
+
+    const sections = JSON.parse(sectionsRaw || "[]");
+
+    const totalTextContent =
+      excerpt + " " + sections.map((s: any) => s.content).join(" ");
+
+    const readTime = calculateReadTime(totalTextContent);
+
+    const slug = generateSlug(title);
+
+    await sheets.spreadsheets.values.update({
+      spreadsheetId,
+      range: `artikel!A${actualRow}:K${actualRow}`,
+      valueInputOption: "RAW",
+      requestBody: {
+        values: [
+          [
+            id,
+            title,
+            slug,
+            category,
+            excerpt,
+            thumbnailUrl,
+            author,
+            oldRow[7],
+            readTime,
+            tags,
+            status,
+          ],
+        ],
+      },
+    });
+
+    // hapus section lama
+    const resSections = await sheets.spreadsheets.values.get({
+      spreadsheetId,
+      range: "artikel_section!A2:D",
+    });
+
+    const sectionRows = resSections.data.values || [];
+
+    const filteredSections = sectionRows.filter((row) => Number(row[1]) !== id);
+
+    const newSectionValues = sections.map((s: any, index: number) => [
+      Date.now() + index,
+      id,
+      s.type,
+      s.content,
+    ]);
+
+    const finalSections = [...filteredSections, ...newSectionValues];
+
+    await sheets.spreadsheets.values.clear({
+      spreadsheetId,
+      range: "artikel_section!A2:D",
+    });
+
+    if (finalSections.length > 0) {
+      await sheets.spreadsheets.values.update({
+        spreadsheetId,
+        range: "artikel_section!A2:D",
+        valueInputOption: "RAW",
+        requestBody: {
+          values: finalSections,
+        },
+      });
+    }
+
+    clearArtikelCache();
+
+    return {
+      success: true,
+      message: "Artikel berhasil diperbarui",
+    };
+  } catch (error: any) {
+    console.error("Update Artikel Error:", error);
+
+    return {
+      success: false,
+      message: error.message,
+    };
   }
 }
