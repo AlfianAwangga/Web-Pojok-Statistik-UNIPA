@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import {
   createArtikel,
+  deleteArtikel,
   getArtikel,
   updateArtikel,
 } from "@/utils/artikel-services";
@@ -54,6 +55,40 @@ export async function PUT(req: Request) {
       {
         status: 500,
       },
+    );
+  }
+}
+
+export async function DELETE(req: Request) {
+  try {
+    const { searchParams } = new URL(req.url);
+
+    const id = Number(searchParams.get("id"));
+
+    if (!id) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: "ID tidak valid",
+        },
+        { status: 400 },
+      );
+    }
+
+    const result = await deleteArtikel(id);
+
+    return NextResponse.json(result, {
+      status: result.success ? 200 : 400,
+    });
+  } catch (error) {
+    console.error("DELETE ERROR:", error);
+
+    return NextResponse.json(
+      {
+        success: false,
+        message: "Terjadi kesalahan server",
+      },
+      { status: 500 },
     );
   }
 }

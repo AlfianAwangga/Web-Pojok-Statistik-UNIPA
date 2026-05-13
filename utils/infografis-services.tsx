@@ -293,3 +293,70 @@ export async function updateInfografis(req: Request) {
     };
   }
 }
+
+export async function deleteInfografis(id: number) {
+  try {
+    const spreadsheetId = process.env.SPREADSHEET_ID;
+    const infografisSheetId = Number(process.env.INFOGRAFIS_SHEET_ID);
+
+    if (!spreadsheetId) {
+      throw new Error("SPREADSHEET_ID belum diatur");
+    }
+
+    const sheets = google.sheets({ version: "v4", auth });
+
+    // Ambil semua data
+    const response = await sheets.spreadsheets.values.get({
+      spreadsheetId,
+      range: "infografis!A2:H",
+    });
+
+    const rows = response.data.values || [];
+
+    // Cari index row berdasarkan id
+    const rowIndex = rows.findIndex((row) => Number(row[0]) === id);
+
+    if (rowIndex === -1) {
+      return {
+        success: false,
+        message: "Data tidak ditemukan",
+      };
+    }
+
+    // Hapus row
+    await sheets.spreadsheets.batchUpdate({
+      spreadsheetId,
+      requestBody: {
+        requests: [
+          {
+            deleteDimension: {
+              range: {
+                sheetId: infografisSheetId, // sheet infografis
+                dimension: "ROWS",
+                startIndex: rowIndex + 1,
+                endIndex: rowIndex + 2,
+              },
+            },
+          },
+        ],
+      },
+    });
+
+    clearInfografisCache();
+
+    return {
+      success: true,
+      message: "Infografis berhasil dihapus",
+    };
+  } catch (error) {
+    console.error("Error deleteInfografis:", error);
+
+    return {
+      success: false,
+      message:
+        error instanceof Error
+          ? error.message
+          : "Terjadi kesalahan saat menghapus data",
+    };
+  }
+}

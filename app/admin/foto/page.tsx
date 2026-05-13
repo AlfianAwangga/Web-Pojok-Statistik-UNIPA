@@ -1,11 +1,13 @@
 "use client";
 
 import AlertNotification from "@/components/ui/alert-notification";
+import ConfirmDialog from "@/components/ui/confirm-dialog";
 import { Column, DataTable } from "@/components/ui/data-table";
 import FormModal from "@/components/ui/form-modal";
 import { FotoModel } from "@/data/foto-model";
 import { UserModel } from "@/data/user-model";
 import { useAuth } from "@/hooks/use-auth";
+import { useDeleteDialog } from "@/hooks/use-delete-dialog";
 import { useFetch } from "@/hooks/use-fetch";
 import { useNotification } from "@/hooks/use-notification";
 import { filterTableData } from "@/utils/search";
@@ -23,6 +25,14 @@ export default function DokumentasiAdmin() {
   const { user } = useAuth();
   const { showAlert, alertType, alertMessage, showNotification } =
     useNotification();
+  const {
+    isOpen: isDeleteOpen,
+    selectedItem: selectedDelete,
+    deleting,
+    openDelete,
+    closeDelete,
+    setDeleting,
+  } = useDeleteDialog<FotoModel>();
   const ITEMS_PER_PAGES = 10; // Konfigurasi jumlah data per halaman pagination
 
   // Ambil data dari API Route
@@ -156,8 +166,36 @@ export default function DokumentasiAdmin() {
 
     setIsModalOpen(true);
   };
-  const handleDelete = (item: FotoModel) =>
-    console.log("Hapus Infografis:", item.id);
+  const handleDelete = (item: FotoModel) => openDelete(item);
+  const confirmDelete = async () => {
+    if (!selectedDelete) return;
+
+    try {
+      setDeleting(true);
+
+      const res = await fetch(`/api/foto?id=${selectedDelete.id}`, {
+        method: "DELETE",
+      });
+
+      const result = await res.json();
+
+      if (result.success) {
+        showNotification("success", "Data berhasil dihapus");
+
+        await refetch();
+      } else {
+        showNotification("error", result.message);
+      }
+    } catch (error) {
+      console.error(error);
+
+      showNotification("error", "Terjadi kesalahan");
+    } finally {
+      setDeleting(false);
+
+      closeDelete();
+    }
+  };
 
   const handleInputChange = (field: keyof FormData, value: string) => {
     setFormData((prev) => ({
@@ -367,6 +405,14 @@ export default function DokumentasiAdmin() {
           </div>
         </div>
       </FormModal>
+      <ConfirmDialog
+        isOpen={isDeleteOpen}
+        title="Hapus Foto"
+        message={`Yakin ingin menghapus "${selectedDelete?.caption}"?`}
+        onCancel={closeDelete}
+        onConfirm={confirmDelete}
+        loading={deleting}
+      />
     </div>
   );
 }

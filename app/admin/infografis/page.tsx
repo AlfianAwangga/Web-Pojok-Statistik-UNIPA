@@ -10,6 +10,8 @@ import { useMemo, useState } from "react";
 import { useAuth } from "@/hooks/use-auth";
 import AlertNotification from "@/components/ui/alert-notification";
 import { useNotification } from "@/hooks/use-notification";
+import { useDeleteDialog } from "@/hooks/use-delete-dialog";
+import ConfirmDialog from "@/components/ui/confirm-dialog";
 
 // INTERFACES
 interface FormData {
@@ -23,6 +25,14 @@ export default function InfografisAdmin() {
   const { user } = useAuth(); // Simulasi user yang sedang login
   const { showAlert, alertType, alertMessage, showNotification } =
     useNotification();
+  const {
+    isOpen: isDeleteOpen,
+    selectedItem: selectedDelete,
+    deleting,
+    openDelete,
+    closeDelete,
+    setDeleting,
+  } = useDeleteDialog<InfografisModel>();
   const ITEMS_PER_PAGES = 10; // Konfigurasi jumlah data per halaman pagination
 
   // Ambil data dari API Route
@@ -117,8 +127,36 @@ export default function InfografisAdmin() {
     setIsModalOpen(true);
   };
 
-  const handleDelete = (item: InfografisModel) =>
-    console.log("Hapus Infografis:", item.id);
+  const handleDelete = (item: InfografisModel) => openDelete(item);
+  const confirmDelete = async () => {
+    if (!selectedDelete) return;
+
+    try {
+      setDeleting(true);
+
+      const res = await fetch(`/api/infografis?id=${selectedDelete.id}`, {
+        method: "DELETE",
+      });
+
+      const result = await res.json();
+
+      if (result.success) {
+        showNotification("success", "Data berhasil dihapus");
+
+        await refetch();
+      } else {
+        showNotification("error", result.message);
+      }
+    } catch (error) {
+      console.error(error);
+
+      showNotification("error", "Terjadi kesalahan");
+    } finally {
+      setDeleting(false);
+
+      closeDelete();
+    }
+  };
   const handleInputChange = (field: keyof FormData, value: string) => {
     setFormData((prev) => ({
       ...prev,
@@ -375,6 +413,14 @@ export default function InfografisAdmin() {
           </div>
         </div>
       </FormModal>
+      <ConfirmDialog
+        isOpen={isDeleteOpen}
+        title="Hapus Infografis"
+        message={`Yakin ingin menghapus "${selectedDelete?.title}"?`}
+        onCancel={closeDelete}
+        onConfirm={confirmDelete}
+        loading={deleting}
+      />
     </div>
   );
 }

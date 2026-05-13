@@ -342,3 +342,114 @@ export async function updateArtikel(req: Request) {
     };
   }
 }
+
+export async function deleteArtikel(id: number) {
+  try {
+    const spreadsheetId = process.env.SPREADSHEET_ID;
+    const artikelSheetId = Number(process.env.ARTIKEL_SHEET_ID);
+    const sectionSheetId = Number(process.env.ARTIKEL_SECTION_SHEET_ID);
+
+    if (!spreadsheetId) {
+      throw new Error("SPREADSHEET_ID belum diatur");
+    }
+
+    const sheets = google.sheets({
+      version: "v4",
+      auth,
+    });
+
+    // =========================
+    // AMBIL DATA ARTIKEL
+    // =========================
+    const artikelRes = await sheets.spreadsheets.values.get({
+      spreadsheetId,
+      range: "artikel!A2:K",
+    });
+
+    const artikelRows = artikelRes.data.values || [];
+    const artikelIndex = artikelRows.findIndex((row) => Number(row[0]) === id);
+
+    if (artikelIndex === -1) {
+      return {
+        success: false,
+        message: "Artikel tidak ditemukan",
+      };
+    }
+
+    // =========================
+    // AMBIL DATA SECTION
+    // =========================
+    const sectionRes = await sheets.spreadsheets.values.get({
+      spreadsheetId,
+      range: "artikel_section!A2:D",
+    });
+
+    const sectionRows = sectionRes.data.values || [];
+
+    // cari semua row section milik artikel
+    const sectionIndexes: number[] = [];
+
+    sectionRows.forEach((row, index) => {
+      if (Number(row[1]) === id) {
+        sectionIndexes.push(index);
+      }
+    });
+
+    // =========================
+    // HAPUS SECTION DULU
+    // dari bawah ke atas
+    // =========================
+    for (const index of sectionIndexes.reverse()) {
+      await sheets.spreadsheets.batchUpdate({
+        spreadsheetId,
+        requestBody: {
+          requests: [
+            {
+              deleteDimension: {
+                range: {
+                  sheetId: sectionSheetId,
+                  dimension: "ROWS",
+                  startIndex: index + 1,
+                  endIndex: index + 2,
+                },
+              },
+            },
+          ],
+        },
+      });
+    }
+
+    // =========================
+    // HAPUS ARTIKEL
+    // =========================
+    await sheets.spreadsheets.batchUpdate({
+      spreadsheetId,
+      requestBody: {
+        requests: [
+          {
+            deleteDimension: {
+              range: {
+                sheetId: artikelSheetId,
+                dimension: "ROWS",
+                startIndex: artikelIndex + 1,
+                endIndex: artikelIndex + 2,
+              },
+            },
+          },
+        ],
+      },
+    });
+
+    return {
+      success: true,
+      message: "Artikel berhasil dihapus",
+    };
+  } catch (error) {
+    console.error("Error deleteArtikel:", error);
+
+    return {
+      success: false,
+      message: error instanceof Error ? error.message : "Terjadi kesalahan",
+    };
+  }
+}
