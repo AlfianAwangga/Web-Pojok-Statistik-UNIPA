@@ -20,18 +20,16 @@ export async function getArtikel() {
     // Gunakan cache jika belum expired
     if (cacheArtikel.length > 0 && now - cacheArtikelTime < CACHE_DURATION) {
       console.log("Menggunakan cache artikel");
-
       return cacheArtikel;
     }
 
     const spreadsheetId = process.env.SPREADSHEET_ID;
-
     const sheets = google.sheets({ version: "v4", auth });
 
-    // Ambil data artikel
+    // Ambil data artikel (Diperlebar ke kolom L untuk revisi_msg)
     const resArticles = await sheets.spreadsheets.values.get({
       spreadsheetId,
-      range: "artikel!A2:K",
+      range: "artikel!A2:L",
     });
 
     // Ambil data section
@@ -65,7 +63,8 @@ export async function getArtikel() {
         publishDate: row[7] || "",
         readTime: row[8] || "",
         tags: row[9] ? row[9].split(",").map((t: string) => t.trim()) : [],
-        status: row[10] || "draft",
+        status: row[10] || "menunggu",
+        revisi_msg: row[11] || "", // Menerima data dari kolom L
         sections,
       };
     });
@@ -80,6 +79,7 @@ export async function getArtikel() {
     return [];
   }
 }
+
 const generateSlug = (title: string) => {
   return title
     .toLowerCase()
@@ -97,6 +97,8 @@ const calculateReadTime = (content: string) => {
 export async function getArticleLastId(): Promise<number> {
   try {
     const spreadsheetId = process.env.SPREADSHEET_ID;
+    if (!spreadsheetId) return 0;
+
     const sheets = google.sheets({ version: "v4", auth });
     const res = await sheets.spreadsheets.values.get({
       spreadsheetId,
@@ -104,8 +106,13 @@ export async function getArticleLastId(): Promise<number> {
     });
     const rows = res.data.values;
     if (!rows || rows.length === 0) return 0;
-    return Number(rows[rows.length - 1][0]) || 0;
+
+    const lastRow = rows[rows.length - 1];
+    const lastId = Number(lastRow[0]);
+
+    return isNaN(lastId) ? 0 : lastId;
   } catch (error) {
+    console.error("Error getArticleLastId:", error);
     return 0;
   }
 }
@@ -121,14 +128,14 @@ export async function createArtikel(req: Request) {
     const excerpt = formData.get("excerpt") as string;
     const author = formData.get("author") as string;
     const tags = formData.get("tags") as string;
-    const status = formData.get("status") as string;
     const sectionsRaw = formData.get("sections") as string; // JSON string dari frontend
     const thumbnailFile = formData.get("file") as File | null;
 
     if (!title) throw new Error("Judul artikel wajib diisi");
 
     // --- OTOMATISASI DATA (LOGIKA SERVER) ---
-    const id = (await getArticleLastId()) + 1;
+    const lastId = await getArticleLastId();
+    const id = lastId + 1;
     const slug = generateSlug(title);
     const publishDate = new Date().toLocaleDateString("id-ID", {
       year: "numeric",
@@ -144,14 +151,14 @@ export async function createArtikel(req: Request) {
 
     // --- 1. UPLOAD THUMBNAIL KE DRIVE ---
     let thumbnailUrl = "";
-    if (thumbnailFile) {
+    if (thumbnailFile && thumbnailFile.size > 0) {
       const upload = await uploadToDrive(thumbnailFile, folderId);
       if (upload.success) thumbnailUrl = upload.imageUrl || "";
     }
 
     // --- 2. SIMPAN KE SHEET "Articles" ---
     const articleSave = await saveToSheets({
-      range: "artikel!A2:K",
+      range: "artikel!A2:L",
       values: [
         [
           id,
@@ -164,17 +171,18 @@ export async function createArtikel(req: Request) {
           publishDate,
           readTime,
           tags,
-          status,
+          "menunggu",
+          "",
         ],
       ],
     });
 
-    if (!articleSave.success) throw new Error("Gagal simpan ke sheet Articles");
+    if (!articleSave.success)
+      throw new Error(`Gagal simpan ke database: ${articleSave.error}`);
 
     // --- 3. SIMPAN KE SHEET "Sections" (RELASIONAL) ---
     if (sections.length > 0) {
       const sectionBatchId = Date.now();
-      // Setiap section disimpan sebagai baris baru dengan artikel_id yang sama
       const sectionValues = sections.map((s: any, index: number) => [
         sectionBatchId + index, // unique section id
         id, // artikel_id (Foreign Key)
@@ -192,7 +200,7 @@ export async function createArtikel(req: Request) {
 
     return {
       success: true,
-      message: "Artikel berhasil dibuat otomatis",
+      message: "Artikel berhasil diunggah",
       data: {
         id,
         title,
@@ -204,103 +212,130 @@ export async function createArtikel(req: Request) {
         publishDate,
         readTime,
         tags,
-        status,
+        status: "menunggu",
+        revisi_msg: "",
       },
     };
   } catch (error: any) {
-    console.error("Service Error:", error);
-    return { success: false, message: error.message };
+    console.error("Error createArtikel:", error);
+    return { success: false, message: error.message || "Gagal upload artikel" };
   }
 }
+
 export async function updateArtikel(req: Request) {
   try {
     const formData = await req.formData();
     const spreadsheetId = process.env.SPREADSHEET_ID!;
     const folderId = process.env.GOOGLE_DRIVE_FOLDER_ARTIKEL_ID as string;
 
-    const id = Number(formData.get("id"));
-
-    const title = formData.get("title") as string;
-    const category = formData.get("category") as string;
-    const excerpt = formData.get("excerpt") as string;
-    const author = formData.get("author") as string;
-    const tags = formData.get("tags") as string;
-    const status = formData.get("status") as string;
-
-    const sectionsRaw = formData.get("sections") as string;
-    const thumbnailFile = formData.get("file") as File | null;
+    const id = formData.get("id") as string;
+    const role = formData.get("role") as string;
 
     const sheets = google.sheets({ version: "v4", auth });
 
     const res = await sheets.spreadsheets.values.get({
       spreadsheetId,
-      range: "artikel!A2:K",
+      range: "artikel!A2:L",
     });
 
     const rows = res.data.values || [];
 
-    const rowIndex = rows.findIndex((row) => Number(row[0]) === id);
+    // Gunakan pencarian aman String() agar tidak luput tipe data
+    const rowIndex = rows.findIndex((row) => String(row[0]) === String(id));
 
     if (rowIndex === -1) {
-      throw new Error("Artikel tidak ditemukan");
+      return { success: false, message: "Artikel tidak ditemukan" };
     }
 
-    const actualRow = rowIndex + 2;
-
     const oldRow = rows[rowIndex];
-
     let thumbnailUrl = oldRow[5] || "";
 
     // upload gambar baru jika ada
-    if (thumbnailFile) {
+    const thumbnailFile = formData.get("file") as File | null;
+    if (thumbnailFile && thumbnailFile.size > 0) {
       const upload = await uploadToDrive(thumbnailFile, folderId);
-
       if (upload.success) {
         thumbnailUrl = upload.imageUrl || "";
+      } else {
+        return { success: false, message: "Gagal upload thumbnail baru" };
       }
     }
 
-    const sections = JSON.parse(sectionsRaw || "[]");
+    // Ambil data yang mungkin diubah, fallback ke data lama jika tidak dikirim
+    const title =
+      formData.get("title") !== null
+        ? (formData.get("title") as string)
+        : oldRow[1] || "";
+    const category =
+      formData.get("category") !== null
+        ? (formData.get("category") as string)
+        : oldRow[3] || "";
+    const excerpt =
+      formData.get("excerpt") !== null
+        ? (formData.get("excerpt") as string)
+        : oldRow[4] || "";
+    const author =
+      formData.get("author") !== null
+        ? (formData.get("author") as string)
+        : oldRow[6] || "";
+    const tags =
+      formData.get("tags") !== null
+        ? (formData.get("tags") as string)
+        : oldRow[9] || "";
+    const sectionsRaw = formData.get("sections") as string;
 
+    const sections = JSON.parse(sectionsRaw || "[]");
     const totalTextContent =
       excerpt + " " + sections.map((s: any) => s.content).join(" ");
-
     const readTime = calculateReadTime(totalTextContent);
-
     const slug = generateSlug(title);
+
+    // Smart Status Update
+    const currentStatus = oldRow[10] || "menunggu";
+    let newStatus = "menunggu";
+    let newRevisiMsg = "";
+
+    if (role === "admin") {
+      newStatus = currentStatus;
+      newRevisiMsg = oldRow[11] || "";
+    }
+
+    const updatedRow = [
+      oldRow[0], // id
+      title,
+      slug,
+      category,
+      excerpt,
+      thumbnailUrl,
+      author,
+      oldRow[7], // publishDate tetap
+      readTime,
+      tags,
+      newStatus,
+      newRevisiMsg,
+    ];
+
+    const actualRow = rowIndex + 2;
 
     await sheets.spreadsheets.values.update({
       spreadsheetId,
-      range: `artikel!A${actualRow}:K${actualRow}`,
-      valueInputOption: "RAW",
+      range: `artikel!A${actualRow}:L${actualRow}`,
+      valueInputOption: "USER_ENTERED",
       requestBody: {
-        values: [
-          [
-            id,
-            title,
-            slug,
-            category,
-            excerpt,
-            thumbnailUrl,
-            author,
-            oldRow[7],
-            readTime,
-            tags,
-            status,
-          ],
-        ],
+        values: [updatedRow],
       },
     });
 
-    // hapus section lama
+    // --- MENGURUS SECTION BARU ---
     const resSections = await sheets.spreadsheets.values.get({
       spreadsheetId,
       range: "artikel_section!A2:D",
     });
 
     const sectionRows = resSections.data.values || [];
-
-    const filteredSections = sectionRows.filter((row) => Number(row[1]) !== id);
+    const filteredSections = sectionRows.filter(
+      (row) => String(row[1]) !== String(id),
+    );
 
     const newSectionValues = sections.map((s: any, index: number) => [
       Date.now() + index,
@@ -329,17 +364,10 @@ export async function updateArtikel(req: Request) {
 
     clearArtikelCache();
 
-    return {
-      success: true,
-      message: "Artikel berhasil diperbarui",
-    };
+    return { success: true, message: "Artikel berhasil diperbarui" };
   } catch (error: any) {
     console.error("Update Artikel Error:", error);
-
-    return {
-      success: false,
-      message: error.message,
-    };
+    return { success: false, message: error.message || "Gagal update data" };
   }
 }
 
@@ -353,27 +381,21 @@ export async function deleteArtikel(id: number) {
       throw new Error("SPREADSHEET_ID belum diatur");
     }
 
-    const sheets = google.sheets({
-      version: "v4",
-      auth,
-    });
+    const sheets = google.sheets({ version: "v4", auth });
 
     // =========================
     // AMBIL DATA ARTIKEL
     // =========================
     const artikelRes = await sheets.spreadsheets.values.get({
       spreadsheetId,
-      range: "artikel!A2:K",
+      range: "artikel!A2:L",
     });
 
     const artikelRows = artikelRes.data.values || [];
     const artikelIndex = artikelRows.findIndex((row) => Number(row[0]) === id);
 
     if (artikelIndex === -1) {
-      return {
-        success: false,
-        message: "Artikel tidak ditemukan",
-      };
+      return { success: false, message: "Artikel tidak ditemukan" };
     }
 
     // =========================
@@ -385,8 +407,6 @@ export async function deleteArtikel(id: number) {
     });
 
     const sectionRows = sectionRes.data.values || [];
-
-    // cari semua row section milik artikel
     const sectionIndexes: number[] = [];
 
     sectionRows.forEach((row, index) => {
@@ -396,8 +416,7 @@ export async function deleteArtikel(id: number) {
     });
 
     // =========================
-    // HAPUS SECTION DULU
-    // dari bawah ke atas
+    // HAPUS SECTION DULU (dari bawah ke atas)
     // =========================
     for (const index of sectionIndexes.reverse()) {
       await sheets.spreadsheets.batchUpdate({
@@ -440,16 +459,69 @@ export async function deleteArtikel(id: number) {
       },
     });
 
-    return {
-      success: true,
-      message: "Artikel berhasil dihapus",
-    };
+    clearArtikelCache();
+
+    return { success: true, message: "Artikel berhasil dihapus" };
   } catch (error) {
     console.error("Error deleteArtikel:", error);
-
     return {
       success: false,
       message: error instanceof Error ? error.message : "Terjadi kesalahan",
+    };
+  }
+}
+
+// =====================================
+// FUNGSI BARU UNTUK SETUJUI & REVISI
+// =====================================
+export async function reviewArtikel(req: Request) {
+  try {
+    const formData = await req.formData();
+
+    const id = formData.get("id") as string;
+    const status = formData.get("status") as string; // "disetujui" atau "revisi"
+    const revisiMsg = (formData.get("revisi_msg") as string) || "";
+
+    const spreadsheetId = process.env.SPREADSHEET_ID;
+    if (!spreadsheetId) throw new Error("SPREADSHEET_ID belum diatur");
+
+    const sheets = google.sheets({ version: "v4", auth });
+
+    const response = await sheets.spreadsheets.values.get({
+      spreadsheetId,
+      range: "artikel!A2:A",
+    });
+
+    const rows = response.data.values;
+    if (!rows || rows.length === 0) throw new Error("Data tidak ditemukan");
+
+    const rowIndex = rows.findIndex((row) => String(row[0]) === String(id));
+    if (rowIndex === -1) throw new Error("Artikel tidak ditemukan");
+
+    const targetRow = rowIndex + 2;
+
+    // Artikel memiliki kolom Status di K (index 10) dan Pesan Revisi di L (index 11)
+    await sheets.spreadsheets.values.update({
+      spreadsheetId,
+      range: `artikel!K${targetRow}:L${targetRow}`,
+      valueInputOption: "USER_ENTERED",
+      requestBody: {
+        values: [[status, revisiMsg]],
+      },
+    });
+
+    clearArtikelCache();
+
+    return {
+      success: true,
+      message: `Status berhasil diubah menjadi ${status}`,
+    };
+  } catch (error) {
+    console.error("Error reviewArtikel:", error);
+    return {
+      success: false,
+      message:
+        error instanceof Error ? error.message : "Gagal memberikan review",
     };
   }
 }

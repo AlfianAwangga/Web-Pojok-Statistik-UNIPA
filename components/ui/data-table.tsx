@@ -1,5 +1,12 @@
 import React, { useState } from "react";
 import { Pagination } from "../../utils/pagination";
+import {
+  Eye,
+  CheckCircle,
+  MessageSquareDashed,
+  Pencil,
+  Trash2,
+} from "lucide-react";
 
 export interface Column<T> {
   header: string;
@@ -12,6 +19,7 @@ interface DataTableProps<T> {
   title?: string;
   columns: Column<T>[];
   data: T[];
+  onView?: (item: T) => void;
   onEdit?: (item: T) => void;
   onDelete?: (item: T) => void;
   onRevisi?: (item: T) => void;
@@ -25,6 +33,7 @@ export function DataTable<T>({
   title,
   columns,
   data,
+  onView,
   onEdit,
   onDelete,
   onRevisi,
@@ -40,7 +49,7 @@ export function DataTable<T>({
     ? data.slice(startIndex, startIndex + itemsPerPage)
     : data;
 
-  const hasActions = onEdit || onDelete || onRevisi || onApprove;
+  const hasActions = onView || onEdit || onDelete || onRevisi || onApprove;
 
   return (
     <div className="w-full overflow-hidden bg-white rounded-lg shadow-sm border border-gray-200">
@@ -91,46 +100,77 @@ export function DataTable<T>({
                   ))}
 
                   {hasActions && (
-                    <td className="px-6 py-4 flex justify-center gap-2 items-center">
-                      {canAction && !canAction(item) ? (
-                        <span className="text-xs text-gray-400 italic">
-                          Hanya lihat
-                        </span>
-                      ) : (
+                    <td className="px-6 py-4 flex flex-wrap justify-center gap-2 items-center">
+                      {/* TOMBOL VIEW */}
+                      {onView && (
+                        <button
+                          onClick={() => onView(item)}
+                          title="Lihat Detail"
+                          className="flex items-center gap-1.5 p-1.5 sm:px-2.5 sm:py-1.5 text-slate-700 bg-slate-100 border border-slate-200 rounded-md hover:bg-slate-200 transition"
+                        >
+                          <Eye className="w-4 h-4" />
+                          <span className="hidden sm:inline text-xs font-medium">
+                            View
+                          </span>
+                        </button>
+                      )}
+                      {!canAction || canAction(item) ? (
                         <>
                           {onApprove && (item as any).status === "menunggu" && (
                             <button
                               onClick={() => onApprove(item)}
-                              className="px-3 py-1.5 text-xs text-white bg-emerald-600 rounded-md hover:bg-emerald-700 transition"
+                              title="Setujui Data"
+                              className="flex items-center gap-1.5 p-1.5 sm:px-2.5 sm:py-1.5 text-white bg-emerald-600 rounded-md hover:bg-emerald-700 transition"
                             >
-                              Setujui
+                              <CheckCircle className="w-4 h-4" />
+                              <span className="hidden sm:inline text-xs font-medium">
+                                Setujui
+                              </span>
                             </button>
                           )}
                           {onRevisi && (item as any).status === "menunggu" && (
                             <button
                               onClick={() => onRevisi(item)}
-                              className="px-3 py-1.5 text-xs text-white bg-amber-500 rounded-md hover:bg-amber-600 transition"
+                              title="Beri Catatan Revisi"
+                              className="flex items-center gap-1.5 p-1.5 sm:px-2.5 sm:py-1.5 text-white bg-amber-500 rounded-md hover:bg-amber-600 transition"
                             >
-                              Revisi
+                              <MessageSquareDashed className="w-4 h-4" />
+                              <span className="hidden sm:inline text-xs font-medium">
+                                Revisi
+                              </span>
                             </button>
                           )}
-                          {onEdit && (
+                          {onEdit && (item as any).status !== "disetujui" && (
                             <button
                               onClick={() => onEdit(item)}
-                              className="px-3 py-1.5 text-xs text-white bg-blue-600 rounded-md hover:bg-blue-700 transition"
+                              title="Edit Data"
+                              className="flex items-center gap-1.5 p-1.5 sm:px-2.5 sm:py-1.5 text-white bg-blue-600 rounded-md hover:bg-blue-700 transition"
                             >
-                              Edit
+                              <Pencil className="w-4 h-4" />
+                              <span className="hidden sm:inline text-xs font-medium">
+                                Edit
+                              </span>
                             </button>
                           )}
-                          {onDelete && (
+                          {onDelete && (item as any).status !== "menunggu" && (
                             <button
                               onClick={() => onDelete(item)}
-                              className="px-3 py-1.5 text-xs text-white bg-red-600 rounded-md hover:bg-red-700 transition"
+                              title="Hapus Data"
+                              className="flex items-center gap-1.5 p-1.5 sm:px-2.5 sm:py-1.5 text-white bg-red-600 rounded-md hover:bg-red-700 transition"
                             >
-                              Hapus
+                              <Trash2 className="w-4 h-4" />
+                              <span className="hidden sm:inline text-xs font-medium">
+                                Hapus
+                              </span>
                             </button>
                           )}
                         </>
+                      ) : (
+                        !onView && (
+                          <span className="text-xs text-gray-400 italic">
+                            Hanya lihat
+                          </span>
+                        )
                       )}
                     </td>
                   )}

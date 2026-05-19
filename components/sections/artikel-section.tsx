@@ -14,13 +14,14 @@ export default function ArtikelSection() {
   };
 
   // Ambil data dari API Route
-  const {
-    data: dataArtikel,
-    isLoading,
-    error,
-  } = useFetch<ArtikelModel>("/api/artikel");
+  const { data: dataArtikel } = useFetch<ArtikelModel>("/api/artikel");
 
-  const artikelTerbaru = dataArtikel.slice(0, 3);
+  const approvedData = dataArtikel.filter(
+    (item) => item.status === "disetujui",
+  );
+
+  const artikelTerbaru = approvedData.slice(0, 3);
+
   return (
     <section id="artikel" className="py-20 bg-white">
       <ScrollAnimation>

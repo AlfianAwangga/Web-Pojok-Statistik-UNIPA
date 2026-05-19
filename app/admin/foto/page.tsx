@@ -4,6 +4,7 @@ import AlertNotification from "@/components/ui/alert-notification";
 import ConfirmDialog from "@/components/ui/confirm-dialog";
 import { Column, DataTable } from "@/components/ui/data-table";
 import FormModal from "@/components/ui/form-modal";
+import PreviewImage from "@/components/ui/preview-image";
 import { FotoModel } from "@/data/foto-model";
 import { UserModel } from "@/data/user-model";
 import { useAuth } from "@/hooks/use-auth";
@@ -47,6 +48,7 @@ export default function DokumentasiAdmin() {
   // States untuk UI
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
+  const [selectedItem, setSelectedItem] = useState<FotoModel | null>(null);
 
   // State untuk form artikel
   const [editingData, setEditingData] = useState<FotoModel | null>(null);
@@ -67,7 +69,15 @@ export default function DokumentasiAdmin() {
 
   // Struktur kolom untuk komponen DataTable
   const kolomFoto: Column<any>[] = [
-    { header: "Nama Foto", accessorKey: "caption" },
+    {
+      header: "Nama Foto",
+      accessorKey: "caption",
+      cell: (item) => (
+        <div className="max-w-50 truncate" title={item.caption}>
+          {item.caption}
+        </div>
+      ),
+    },
     { header: "Lokasi", accessorKey: "lokasi", hiddenOnMobile: true },
     {
       header: "Uploader",
@@ -274,6 +284,7 @@ export default function DokumentasiAdmin() {
           <DataTable
             columns={kolomFoto}
             data={filteredData}
+            onView={(item) => setSelectedItem(item)}
             onEdit={handleEdit}
             onDelete={handleDelete}
             canAction={isAuthor}
@@ -405,6 +416,7 @@ export default function DokumentasiAdmin() {
           </div>
         </div>
       </FormModal>
+      <PreviewImage item={selectedItem} onClose={() => setSelectedItem(null)} />
       <ConfirmDialog
         isOpen={isDeleteOpen}
         title="Hapus Foto"

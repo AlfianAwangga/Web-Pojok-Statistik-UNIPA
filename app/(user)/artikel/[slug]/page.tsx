@@ -59,7 +59,7 @@ export default function ArtikelDetailPage({
       <nav className="sticky top-0 z-40 border-b border-gray-200 bg-white">
         <div className="mx-auto flex h-12 md:h-16 max-w-4xl items-center justify-between px-4">
           <button
-            onClick={() => router.push("/artikel")}
+            onClick={() => router.back()}
             className="flex items-center font-semibold text-gray-600 transition-colors hover:text-purple-700"
           >
             <ArrowLeft className="mr-2 h-5 w-5" />

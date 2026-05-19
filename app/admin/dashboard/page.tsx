@@ -12,6 +12,7 @@ import {
   getMyPhotoCount,
 } from "@/utils/dashboard-services";
 import {
+  AlertTriangle,
   BookAIcon,
   BookOpen,
   CheckCircle,
@@ -45,6 +46,21 @@ export default function AdminDashboardPage() {
   const totalPhoto = dataFoto.length;
   const totalVideo = 3;
   const totalUsers = dataUsers.length;
+
+  // --- LOGIKA FILTER NOTIFIKASI REVISI ---
+  // Cari infografis milik user yang statusnya "revisi"
+  const revisiInfografis =
+    dataInfografis?.filter(
+      (item) => item.author === user?.nama && (item as any).status === "revisi",
+    ) || [];
+
+  // Cari artikel milik user yang statusnya "revisi"
+  const revisiArtikel =
+    dataArtikel?.filter(
+      (item) => item.author === user?.nama && item.status === "revisi",
+    ) || [];
+
+  const hasRevisi = revisiInfografis.length > 0 || revisiArtikel.length > 0;
 
   const overallStatItems = [
     {
@@ -94,6 +110,66 @@ export default function AdminDashboardPage() {
         </div>
         <Globe className="absolute -right-4 -bottom-8 w-48 h-48 text-white opacity-10" />
       </div>
+
+      {/* KOTAK PENGUMUMAN REVISI (Hanya Muncul Jika Ada Revisi) */}
+      {hasRevisi && (
+        <div className="bg-white rounded-xl shadow-sm border border-amber-300 p-6 animate-in fade-in slide-in-from-top-4 duration-500">
+          <h3 className="text-lg font-bold text-amber-600 mb-4 flex items-center gap-2">
+            <AlertTriangle className="w-6 h-6" />
+            Tindakan Diperlukan: Catatan Revisi
+          </h3>
+
+          <div className="space-y-4">
+            {/* TAMPILKAN DAFTAR INFOGRAFIS YANG DIREVISI */}
+            {revisiInfografis.map((item) => (
+              <div
+                key={`info-${item.id}`}
+                className="bg-amber-50 border-l-4 border-amber-500 p-4 rounded-r-lg"
+              >
+                <div className="flex items-center gap-2 mb-1">
+                  <ImageIcon className="w-4 h-4 text-amber-600" />
+                  <span className="text-xs font-bold text-amber-700 uppercase tracking-wider">
+                    Infografis
+                  </span>
+                </div>
+                <p className="text-sm font-bold text-amber-900">{item.title}</p>
+                <div className="mt-2 bg-white/60 rounded p-3 border border-amber-100">
+                  <p className="text-sm text-amber-800 whitespace-pre-wrap font-medium">
+                    "
+                    {item.revisi_msg ||
+                      "Tidak ada detail pesan, silakan hubungi admin."}
+                    "
+                  </p>
+                </div>
+              </div>
+            ))}
+
+            {/* TAMPILKAN DAFTAR ARTIKEL YANG DIREVISI */}
+            {revisiArtikel.map((item) => (
+              <div
+                key={`art-${item.id}`}
+                className="bg-amber-50 border-l-4 border-amber-500 p-4 rounded-r-lg"
+              >
+                <div className="flex items-center gap-2 mb-1">
+                  <FileText className="w-4 h-4 text-amber-600" />
+                  <span className="text-xs font-bold text-amber-700 uppercase tracking-wider">
+                    Artikel
+                  </span>
+                </div>
+                <p className="text-sm font-bold text-amber-900">{item.title}</p>
+                <div className="mt-2 bg-white/60 rounded p-3 border border-amber-100">
+                  <p className="text-sm text-amber-800 whitespace-pre-wrap font-medium">
+                    "
+                    {item.revisi_msg ||
+                      "Tidak ada detail pesan, silakan hubungi admin."}
+                    "
+                  </p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       <div>
         <h3 className="text-lg font-bold text-slate-800 mb-4 flex items-center">

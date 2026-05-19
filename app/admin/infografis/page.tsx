@@ -15,6 +15,7 @@ import ConfirmDialog from "@/components/ui/confirm-dialog";
 import { useApproveDialog } from "@/hooks/use-approve-dialog";
 import { useRevisiDialog } from "@/hooks/use-revisi-dialog";
 import RevisiFormContent from "@/components/ui/form-revisi-content";
+import PreviewDialog from "@/components/ui/preview-dialog";
 
 // INTERFACES
 interface FormData {
@@ -67,6 +68,9 @@ export default function InfografisAdmin() {
   // States untuk UI
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
+  const [selectedItem, setSelectedItem] = useState<InfografisModel | null>(
+    null,
+  );
 
   // State untuk Upload File/Gambar
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -90,8 +94,15 @@ export default function InfografisAdmin() {
 
   // Struktur kolom untuk komponen DataTable
   const kolomInfografis: Column<any>[] = [
-    { header: "Judul Infografis", accessorKey: "title" },
-    { header: "Kategori", accessorKey: "category", hiddenOnMobile: true },
+    {
+      header: "Judul Infografis",
+      accessorKey: "title",
+      cell: (item) => (
+        <div className="max-w-50 truncate" title={item.title}>
+          {item.title}
+        </div>
+      ),
+    },
     {
       header: "Uploader",
       accessorKey: "author",
@@ -418,6 +429,7 @@ export default function InfografisAdmin() {
           <DataTable
             columns={kolomInfografis}
             data={filteredData}
+            onView={(item) => setSelectedItem(item)}
             onEdit={user?.role !== "admin" ? handleEdit : undefined}
             onRevisi={user?.role === "admin" ? handleRevisi : undefined}
             onApprove={user?.role === "admin" ? handleApprove : undefined}
@@ -559,6 +571,10 @@ export default function InfografisAdmin() {
           setRevisiMessage={setRevisiMessage}
         />
       </FormModal>
+      <PreviewDialog
+        item={selectedItem}
+        onClose={() => setSelectedItem(null)}
+      />
       <ConfirmDialog
         isOpen={isDeleteOpen}
         title="Hapus Infografis"

@@ -8,6 +8,7 @@ import { ArtikelModel } from "@/data/artikel-model";
 import {
   CheckCircle,
   FileText,
+  Info,
   Plus,
   Search,
   Star,
@@ -22,6 +23,10 @@ import { useNotification } from "@/hooks/use-notification";
 import AlertNotification from "@/components/ui/alert-notification";
 import { useDeleteDialog } from "@/hooks/use-delete-dialog";
 import ConfirmDialog from "@/components/ui/confirm-dialog";
+import { useApproveDialog } from "@/hooks/use-approve-dialog";
+import { useRevisiDialog } from "@/hooks/use-revisi-dialog";
+import RevisiFormContent from "@/components/ui/form-revisi-content";
+import { useRouter } from "next/navigation";
 
 // INTERFACES
 interface ArticleSection {
@@ -52,7 +57,25 @@ export default function ArtikelAdmin() {
     closeDelete,
     setDeleting,
   } = useDeleteDialog<ArtikelModel>();
+  const {
+    isOpen: isApproveOpen,
+    selectedItem: selectedApprove,
+    approving,
+    openApprove,
+    closeApprove,
+    setApproving,
+  } = useApproveDialog<ArtikelModel>();
+  const {
+    isOpen: isRevisiOpen,
+    selectedItem: selectedRevisi,
+    submitting: isRevising,
+    openRevisi,
+    closeRevisi,
+    setSubmitting: setIsRevising,
+  } = useRevisiDialog<ArtikelModel>();
+  const [revisiMessage, setRevisiMessage] = useState("");
   const ITEMS_PER_PAGES = 10; // Konfigurasi jumlah data per halaman pagination
+  const router = useRouter();
 
   // Ambil data dari API Route
   const {
@@ -99,7 +122,15 @@ export default function ArtikelAdmin() {
 
   // Struktur kolom untuk komponen DataTable
   const kolomArtikel: Column<any>[] = [
-    { header: "Judul Artikel", accessorKey: "title" },
+    {
+      header: "Judul Artikel",
+      accessorKey: "title",
+      cell: (item) => (
+        <div className="max-w-50 truncate" title={item.title}>
+          {item.title}
+        </div>
+      ),
+    },
     { header: "Kategori", accessorKey: "category", hiddenOnMobile: true },
     {
       header: "Penulis",
@@ -118,6 +149,45 @@ export default function ArtikelAdmin() {
       ),
     },
     { header: "Tanggal", accessorKey: "publishDate", hiddenOnMobile: true },
+    {
+      header: "Status",
+      accessorKey: "status",
+      hiddenOnMobile: true,
+      cell: (item) => {
+        if (item.status === "revisi") {
+          return (
+            <div className="group relative flex items-center gap-1.5 cursor-help w-max">
+              <span className="rounded-full bg-yellow-100 px-3 py-1 text-xs font-semibold text-yellow-700">
+                Revisi
+              </span>
+              <Info className="h-4 w-4 text-yellow-600 animate-pulse" />
+              <div className="absolute bottom-full left-1/2 z-[99] mb-2 hidden w-64 -translate-x-1/2 flex-col rounded-lg bg-slate-800 p-3 text-left text-xs text-white shadow-xl transition-all group-hover:flex">
+                <span className="mb-1 font-semibold text-yellow-400">
+                  Catatan Revisi:
+                </span>
+                <span className="leading-relaxed whitespace-pre-wrap">
+                  {item.revisi_msg || "Tidak ada catatan."}
+                </span>
+
+                {/* Segitiga kecil panah bawah */}
+                <div className="absolute -bottom-1 left-1/2 h-3 w-3 -translate-x-1/2 rotate-45 bg-slate-800"></div>
+              </div>
+            </div>
+          );
+        }
+        return (
+          <span
+            className={`rounded-full px-3 py-1 text-xs font-semibold ${
+              item.status === "menunggu"
+                ? "bg-blue-100 text-blue-700"
+                : "bg-emerald-100 text-emerald-700"
+            }`}
+          >
+            {item.status.charAt(0).toUpperCase() + item.status.slice(1)}
+          </span>
+        );
+      },
+    },
   ];
 
   // Data tabel yang sudah difilter
@@ -188,6 +258,10 @@ export default function ArtikelAdmin() {
     setSelectedFile(null);
     setPreviewUrl(null);
     setEditingData(null);
+  };
+
+  const handleOpenArticle = (slug: string) => {
+    router.push(`/artikel/${slug}`);
   };
 
   const handleInputChange = (
@@ -265,6 +339,79 @@ export default function ArtikelAdmin() {
       setDeleting(false);
 
       closeDelete();
+    }
+  };
+
+  // Handler untuk membuka modal dan menyiapkan isi pesan jika sebelumnya sudah ada
+  const handleRevisi = (item: ArtikelModel) => {
+    setRevisiMessage(item.revisi_msg || "");
+    openRevisi(item);
+  };
+
+  // Handler saat admin menekan tombol submit pada modal revisi
+  const submitRevisi = async () => {
+    if (!selectedRevisi || !revisiMessage.trim()) return;
+
+    try {
+      setIsRevising(true);
+
+      const formData = new FormData();
+      formData.append("id", String(selectedRevisi.id));
+      formData.append("status", "revisi");
+      formData.append("revisi_msg", revisiMessage);
+
+      // Pastikan endpoint API ini sesuai dengan struktur Anda (PATCH ke review handler)
+      const res = await fetch("/api/artikel", {
+        method: "PATCH",
+        body: formData,
+      });
+
+      const result = await res.json();
+
+      if (result.success) {
+        showNotification("success", "Catatan revisi berhasil dikirim!");
+        await refetch(); // Segarkan tabel
+      } else {
+        showNotification("error", result.message);
+      }
+    } catch (error) {
+      showNotification("error", "Terjadi kesalahan server.");
+    } finally {
+      setIsRevising(false);
+      closeRevisi();
+    }
+  };
+
+  const handleApprove = (item: ArtikelModel) => openApprove(item);
+  const confirmApprove = async () => {
+    if (!selectedApprove) return;
+
+    try {
+      setApproving(true); // Memutar loading state di tombol dialog
+
+      const formData = new FormData();
+      formData.append("id", String(selectedApprove.id));
+      formData.append("status", "disetujui");
+      formData.append("revisi_msg", "");
+
+      const res = await fetch("/api/artikel", {
+        method: "PATCH",
+        body: formData,
+      });
+
+      const result = await res.json();
+
+      if (result.success) {
+        showNotification("success", "Artikel berhasil disetujui!");
+        await refetch();
+      } else {
+        showNotification("error", result.message);
+      }
+    } catch (error) {
+      showNotification("error", "Terjadi kesalahan server.");
+    } finally {
+      setApproving(false); // Matikan loading
+      closeApprove(); // Tutup dialog
     }
   };
 
@@ -396,8 +543,11 @@ export default function ArtikelAdmin() {
             <DataTable
               columns={kolomArtikel}
               data={filteredData}
-              onEdit={handleEdit}
-              onDelete={handleDelete}
+              onView={(item) => handleOpenArticle(item.slug)}
+              onEdit={user?.role !== "admin" ? handleEdit : undefined}
+              onRevisi={user?.role === "admin" ? handleRevisi : undefined}
+              onApprove={user?.role === "admin" ? handleApprove : undefined}
+              onDelete={user?.role === "admin" ? handleDelete : undefined}
               canAction={isAuthor}
               withPagination={true}
               itemsPerPage={ITEMS_PER_PAGES}
@@ -640,6 +790,19 @@ export default function ArtikelAdmin() {
           </div>
         </div>
       </FormModal>
+      <FormModal
+        isOpen={isRevisiOpen}
+        onClose={closeRevisi}
+        onSubmit={submitRevisi}
+        isSubmitting={isRevising}
+        title="Berikan Catatan Revisi"
+      >
+        <RevisiFormContent
+          title={selectedRevisi?.title}
+          revisiMessage={revisiMessage}
+          setRevisiMessage={setRevisiMessage}
+        />
+      </FormModal>
       <ConfirmDialog
         isOpen={isDeleteOpen}
         title="Hapus Infografis"
@@ -647,6 +810,18 @@ export default function ArtikelAdmin() {
         onCancel={closeDelete}
         onConfirm={confirmDelete}
         loading={deleting}
+        variant="danger"
+      />
+      <ConfirmDialog
+        isOpen={isApproveOpen}
+        title="Setujui Infografis"
+        message={`Setujui dan Publikasikan "${selectedApprove?.title}"?`}
+        confirmText="Setujui"
+        cancelText="Batal"
+        loading={approving}
+        variant="success"
+        onCancel={closeApprove}
+        onConfirm={confirmApprove}
       />
     </div>
   );

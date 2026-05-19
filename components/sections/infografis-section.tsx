@@ -16,7 +16,11 @@ export default function InfografisSection() {
     error,
   } = useFetch<InfografisModel>("/api/infografis");
 
-  const infografisTerbaru = dataInfografis.slice(0, 3);
+  const approvedData = dataInfografis.filter(
+    (item) => item.status === "disetujui",
+  );
+
+  const infografisTerbaru = approvedData.slice(0, 3);
   const [selectedItem, setSelectedItem] = useState<InfografisModel | null>(
     null,
   );
