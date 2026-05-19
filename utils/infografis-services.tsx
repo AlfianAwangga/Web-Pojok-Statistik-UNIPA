@@ -5,7 +5,6 @@ import { saveToSheets } from "./google-sheets";
 
 let cacheInfografis: any[] = [];
 let cacheTime = 0;
-
 const CACHE_DURATION = 30 * 1000; // 30 detik
 
 function clearInfografisCache() {
@@ -16,10 +15,8 @@ function clearInfografisCache() {
 export async function getInfografis() {
   const now = Date.now();
 
-  // Gunakan cache jika belum expired
   if (cacheInfografis.length > 0 && now - cacheTime < CACHE_DURATION) {
     console.log("Menggunakan cache infografis");
-
     return cacheInfografis;
   }
   try {
@@ -27,19 +24,15 @@ export async function getInfografis() {
     if (!spreadsheetId) throw new Error("SPREADSHEET_ID belum diatur di .env");
 
     const sheets = google.sheets({ version: "v4", auth });
-
     const response = await sheets.spreadsheets.values.get({
       spreadsheetId: spreadsheetId,
-      range: "infografis!A2:H",
+      range: "infografis!A2:J",
     });
-
     const rows = response.data.values;
-
     if (!rows || rows.length === 0) return [];
 
     cacheInfografis = rows.map((row) => {
       const fileId = row[6] || "";
-
       return {
         id: Number(row[0]),
         title: row[1] || "",
@@ -51,6 +44,8 @@ export async function getInfografis() {
         image_url: fileId
           ? `https://drive.google.com/thumbnail?id=${fileId}&sz=w1000`
           : "/file.svg",
+        status: (row[8] as any) || "menunggu",
+        revisi_msg: row[9] || "",
       };
     });
 
@@ -65,13 +60,12 @@ export async function getInfografis() {
 export async function getInfografisLastId(): Promise<number> {
   try {
     const spreadsheetId = process.env.SPREADSHEET_ID;
-    if (!spreadsheetId) return 0; // Fallback aman jika env belum siap
-
+    if (!spreadsheetId) return 0;
     const sheets = google.sheets({ version: "v4", auth });
 
     const res = await sheets.spreadsheets.values.get({
       spreadsheetId: spreadsheetId,
-      range: "infografis!A2:A", // ambil kolom ID saja
+      range: "infografis!A2:A",
     });
 
     const rows = res.data.values;
@@ -84,7 +78,7 @@ export async function getInfografisLastId(): Promise<number> {
     return isNaN(lastId) ? 0 : lastId;
   } catch (error) {
     console.error("Error getLastId:", error);
-    return 0; // Mengembalikan 0 jika gagal agar proses create tidak ikut rusak
+    return 0;
   }
 }
 
@@ -93,14 +87,12 @@ export async function createInfografis(req: Request) {
     const formData = await req.formData();
     const folderId = process.env.GOOGLE_DRIVE_FOLDER_INFOGRAFIS_ID as string;
 
-    // Menggunakan fallback 'null' untuk tipe File agar TypeScript tidak protes saat validasi
     const file = formData.get("file") as File | null;
     const title = formData.get("title") as string;
     const category = formData.get("category") as string;
     const description = formData.get("description") as string;
     const author = formData.get("author") as string;
 
-    // 🔥 Sangat disarankan untuk mengaktifkan kembali validasi ini
     if (!file || !title) {
       return {
         success: false,
@@ -117,7 +109,6 @@ export async function createInfografis(req: Request) {
       day: "2-digit",
     });
 
-    // 1. Upload ke Drive (Cek status success-nya!)
     const uploadResult = await uploadToDrive(file, folderId);
     if (!uploadResult.success) {
       return {
@@ -126,13 +117,11 @@ export async function createInfografis(req: Request) {
       };
     }
 
-    // Ambil data dari uploadResult karena kita tahu prosesnya sukses
     const fileId = uploadResult.fileId;
     const imageUrl = uploadResult.imageUrl;
 
-    // 2. Simpan ke Sheets (Cek status success-nya juga!)
     const sheetResult = await saveToSheets({
-      range: "infografis!A2:H",
+      range: "infografis!A2:J",
       values: [
         [
           id,
@@ -143,6 +132,8 @@ export async function createInfografis(req: Request) {
           description,
           fileId || "",
           imageUrl || "",
+          "menunggu",
+          "",
         ],
       ],
     });
@@ -168,6 +159,8 @@ export async function createInfografis(req: Request) {
         description,
         drive_image_id: fileId,
         image_url: imageUrl,
+        status: "menunggu",
+        revisi_msg: "",
       },
     };
   } catch (error) {
@@ -188,9 +181,7 @@ export async function updateInfografis(req: Request) {
     const formData = await req.formData();
 
     const id = formData.get("id") as string;
-    const title = formData.get("title") as string;
-    const category = formData.get("category") as string;
-    const description = formData.get("description") as string;
+    const role = formData.get("role") as string;
 
     const spreadsheetId = process.env.SPREADSHEET_ID;
 
@@ -206,72 +197,75 @@ export async function updateInfografis(req: Request) {
     // Ambil seluruh data
     const response = await sheets.spreadsheets.values.get({
       spreadsheetId,
-      range: "infografis!A2:H",
+      range: "infografis!A2:J",
     });
 
     const rows = response.data.values;
 
     if (!rows || rows.length === 0) {
-      return {
-        success: false,
-        message: "Data tidak ditemukan",
-      };
+      return { success: false, message: "Database masih kosong" };
     }
 
-    // Cari index berdasarkan ID
-    const rowIndex = rows.findIndex((row) => row[0] === id);
+    const rowIndex = rows.findIndex((row) => String(row[0]) === String(id));
 
     if (rowIndex === -1) {
-      return {
-        success: false,
-        message: "Data tidak ditemukan",
-      };
+      return { success: false, message: "Data tidak ditemukan" };
     }
 
-    // Simpan data lama
     const oldRow = rows[rowIndex];
+    let fileId = oldRow[6] || "";
+    let imageUrl = oldRow[7] || "";
 
-    // File lama
-    let fileId = oldRow[6];
-    let imageUrl = oldRow[7];
-
-    // Jika user upload gambar baru
     const file = formData.get("file") as File | null;
-
     if (file && file.size > 0) {
       const folderId = process.env.GOOGLE_DRIVE_FOLDER_INFOGRAFIS_ID as string;
-
       const uploadResult = await uploadToDrive(file, folderId);
 
       if (!uploadResult.success) {
-        return {
-          success: false,
-          message: "Gagal upload gambar baru",
-        };
+        return { success: false, message: "Gagal upload gambar baru" };
       }
-
       fileId = uploadResult.fileId || "";
       imageUrl = uploadResult.imageUrl || "";
     }
 
-    // Update row
+    const title =
+      formData.get("title") !== null ? formData.get("title") : oldRow[1] || "";
+    const category =
+      formData.get("category") !== null
+        ? formData.get("category")
+        : oldRow[2] || "";
+    const description =
+      formData.get("description") !== null
+        ? formData.get("description")
+        : oldRow[5] || "";
+
+    const currentStatus = oldRow[8] || "menunggu";
+    let newStatus = "menunggu";
+    let newRevisiMsg = "";
+
+    if (role === "admin") {
+      newStatus = currentStatus;
+      newRevisiMsg = oldRow[9] || "";
+    }
+
     const updatedRow = [
-      oldRow[0], // id tetap
+      oldRow[0],
       title,
       category,
-      oldRow[3], // author tetap
-      oldRow[4], // tanggal tetap
+      oldRow[3] || "",
+      oldRow[4] || "",
       description,
       fileId,
       imageUrl,
+      newStatus,
+      newRevisiMsg,
     ];
 
-    // +2 karena sheet dimulai dari row ke-2
     const targetRow = rowIndex + 2;
 
     await sheets.spreadsheets.values.update({
       spreadsheetId,
-      range: `infografis!A${targetRow}:H${targetRow}`,
+      range: `infografis!A${targetRow}:J${targetRow}`,
       valueInputOption: "USER_ENTERED",
       requestBody: {
         values: [updatedRow],
@@ -280,13 +274,9 @@ export async function updateInfografis(req: Request) {
 
     clearInfografisCache();
 
-    return {
-      success: true,
-      message: "Data berhasil diperbarui",
-    };
+    return { success: true, message: "Data berhasil diperbarui" };
   } catch (error) {
     console.error("Error updateInfografis:", error);
-
     return {
       success: false,
       message: error instanceof Error ? error.message : "Gagal update data",
@@ -305,15 +295,13 @@ export async function deleteInfografis(id: number) {
 
     const sheets = google.sheets({ version: "v4", auth });
 
-    // Ambil semua data
     const response = await sheets.spreadsheets.values.get({
       spreadsheetId,
-      range: "infografis!A2:H",
+      range: "infografis!A2:J",
     });
 
     const rows = response.data.values || [];
 
-    // Cari index row berdasarkan id
     const rowIndex = rows.findIndex((row) => Number(row[0]) === id);
 
     if (rowIndex === -1) {
@@ -323,7 +311,6 @@ export async function deleteInfografis(id: number) {
       };
     }
 
-    // Hapus row
     await sheets.spreadsheets.batchUpdate({
       spreadsheetId,
       requestBody: {
@@ -357,6 +344,57 @@ export async function deleteInfografis(id: number) {
         error instanceof Error
           ? error.message
           : "Terjadi kesalahan saat menghapus data",
+    };
+  }
+}
+
+export async function reviewInfografis(req: Request) {
+  try {
+    const formData = await req.formData();
+
+    const id = formData.get("id") as string;
+    const status = formData.get("status") as string; // "disetujui" atau "revisi"
+    const revisiMsg = (formData.get("revisi_msg") as string) || "";
+
+    const spreadsheetId = process.env.SPREADSHEET_ID;
+    if (!spreadsheetId) throw new Error("SPREADSHEET_ID belum diatur");
+
+    const sheets = google.sheets({ version: "v4", auth });
+
+    const response = await sheets.spreadsheets.values.get({
+      spreadsheetId,
+      range: "infografis!A2:A",
+    });
+
+    const rows = response.data.values;
+    if (!rows || rows.length === 0) throw new Error("Data tidak ditemukan");
+
+    const rowIndex = rows.findIndex((row) => row[0] === id);
+    if (rowIndex === -1) throw new Error("Infografis tidak ditemukan");
+
+    const targetRow = rowIndex + 2;
+
+    await sheets.spreadsheets.values.update({
+      spreadsheetId,
+      range: `infografis!I${targetRow}:J${targetRow}`,
+      valueInputOption: "USER_ENTERED",
+      requestBody: {
+        values: [[status, revisiMsg]],
+      },
+    });
+
+    clearInfografisCache();
+
+    return {
+      success: true,
+      message: `Status berhasil diubah menjadi ${status}`,
+    };
+  } catch (error) {
+    console.error("Error reviewInfografis:", error);
+    return {
+      success: false,
+      message:
+        error instanceof Error ? error.message : "Gagal memberikan review",
     };
   }
 }

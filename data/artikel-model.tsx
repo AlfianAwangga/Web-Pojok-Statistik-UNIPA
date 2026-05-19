@@ -16,6 +16,7 @@ export interface ArtikelModel {
   publishDate: string;
   readTime: string;
   tags: string[];
-  status: "draft" | "published";
+  status: "menunggu" | "disetujui" | "revisi";
+  revisi_msg: string;
   sections: ArticleSection[];
 }

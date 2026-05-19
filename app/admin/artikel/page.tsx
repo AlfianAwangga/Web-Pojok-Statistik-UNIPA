@@ -35,7 +35,7 @@ interface FormData {
   category: string;
   excerpt: string;
   tags: string;
-  status: "draft" | "published";
+  status: "menunggu" | "disetujui" | "revisi";
   sections: ArticleSection[];
 }
 
@@ -82,7 +82,7 @@ export default function ArtikelAdmin() {
     category: "",
     excerpt: "",
     tags: "",
-    status: "published",
+    status: "menunggu",
     sections: [
       {
         id: 1,
@@ -175,7 +175,7 @@ export default function ArtikelAdmin() {
       category: "",
       excerpt: "",
       tags: "",
-      status: "published",
+      status: "menunggu",
       sections: [
         {
           id: 1,

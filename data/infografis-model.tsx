@@ -7,4 +7,6 @@ export interface InfografisModel {
   description: string;
   drive_image_id: string;
   image_url: string;
+  status: "menunggu" | "disetujui" | "revisi";
+  revisi_msg: string;
 }

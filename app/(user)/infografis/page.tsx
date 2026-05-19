@@ -38,13 +38,13 @@ export default function InfografisPage() {
     error,
   } = useFetch<InfografisModel>("/api/infografis");
 
+  const approvedData = dataInfografis.filter(
+    (item) => item.status === "disetujui",
+  );
+
   const categories = getUniqueCategories(dataInfografis);
 
-  const filteredData = filterData(
-    dataInfografis,
-    searchQuery,
-    selectedCategory,
-  );
+  const filteredData = filterData(approvedData, searchQuery, selectedCategory);
 
   useEffect(() => {
     setCurrentPage(1);

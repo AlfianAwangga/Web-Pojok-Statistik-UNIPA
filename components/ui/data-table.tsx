@@ -1,12 +1,11 @@
 import React, { useState } from "react";
 import { Pagination } from "../../utils/pagination";
 
-// Mendefinisikan struktur kolom tabel
 export interface Column<T> {
   header: string;
   accessorKey: keyof T | string;
   hiddenOnMobile?: boolean;
-  cell?: (item: T) => React.ReactNode; // Opsional: untuk custom render (misal: gambar, badge, atau format tanggal)
+  cell?: (item: T) => React.ReactNode;
 }
 
 interface DataTableProps<T> {
@@ -15,6 +14,8 @@ interface DataTableProps<T> {
   data: T[];
   onEdit?: (item: T) => void;
   onDelete?: (item: T) => void;
+  onRevisi?: (item: T) => void;
+  onApprove?: (item: T) => void;
   canAction?: (item: T) => boolean;
   withPagination?: boolean;
   itemsPerPage?: number;
@@ -26,6 +27,8 @@ export function DataTable<T>({
   data,
   onEdit,
   onDelete,
+  onRevisi,
+  onApprove,
   canAction,
   withPagination = false,
   itemsPerPage = 5,
@@ -36,6 +39,9 @@ export function DataTable<T>({
   const displayData = withPagination
     ? data.slice(startIndex, startIndex + itemsPerPage)
     : data;
+
+  const hasActions = onEdit || onDelete || onRevisi || onApprove;
+
   return (
     <div className="w-full overflow-hidden bg-white rounded-lg shadow-sm border border-gray-200">
       {title && (
@@ -51,12 +57,14 @@ export function DataTable<T>({
               {columns.map((col, idx) => (
                 <th
                   key={idx}
-                  className={`px-6 py-3 font-semibold ${col.hiddenOnMobile ? "hidden md:table-cell" : ""}`}
+                  className={`px-6 py-3 font-semibold ${
+                    col.hiddenOnMobile ? "hidden md:table-cell" : ""
+                  }`}
                 >
                   {col.header}
                 </th>
               ))}
-              {(onEdit || onDelete) && (
+              {hasActions && (
                 <th className="px-6 py-3 font-semibold text-center">Aksi</th>
               )}
             </tr>
@@ -72,23 +80,40 @@ export function DataTable<T>({
                   {columns.map((col, colIndex) => (
                     <td
                       key={colIndex}
-                      className={`px-6 py-4 ${col.hiddenOnMobile ? "hidden md:table-cell" : ""}`}
+                      className={`px-6 py-4 ${
+                        col.hiddenOnMobile ? "hidden md:table-cell" : ""
+                      }`}
                     >
-                      {/* Jika ada custom cell render, gunakan itu. Jika tidak, tampilkan value mentah */}
                       {col.cell
                         ? col.cell(item)
                         : String(item[col.accessorKey as keyof T])}
                     </td>
                   ))}
-                  {(onEdit || onDelete) && (
+
+                  {hasActions && (
                     <td className="px-6 py-4 flex justify-center gap-2 items-center">
-                      {/* Logika pengecekan: Jika ada fungsi canAction dan hasilnya FALSE */}
                       {canAction && !canAction(item) ? (
                         <span className="text-xs text-gray-400 italic">
                           Hanya lihat
                         </span>
                       ) : (
                         <>
+                          {onApprove && (item as any).status === "menunggu" && (
+                            <button
+                              onClick={() => onApprove(item)}
+                              className="px-3 py-1.5 text-xs text-white bg-emerald-600 rounded-md hover:bg-emerald-700 transition"
+                            >
+                              Setujui
+                            </button>
+                          )}
+                          {onRevisi && (item as any).status === "menunggu" && (
+                            <button
+                              onClick={() => onRevisi(item)}
+                              className="px-3 py-1.5 text-xs text-white bg-amber-500 rounded-md hover:bg-amber-600 transition"
+                            >
+                              Revisi
+                            </button>
+                          )}
                           {onEdit && (
                             <button
                               onClick={() => onEdit(item)}
@@ -114,7 +139,7 @@ export function DataTable<T>({
             ) : (
               <tr>
                 <td
-                  colSpan={columns.length + (onEdit || onDelete ? 2 : 1)}
+                  colSpan={columns.length + (hasActions ? 2 : 1)}
                   className="px-6 py-8 text-center text-gray-500 italic"
                 >
                   Tidak ada data yang tersedia.

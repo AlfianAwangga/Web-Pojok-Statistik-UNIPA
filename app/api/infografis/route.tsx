@@ -3,6 +3,7 @@ import {
   createInfografis,
   deleteInfografis,
   getInfografis,
+  reviewInfografis,
   updateInfografis,
 } from "@/utils/infografis-services";
 
@@ -64,6 +65,21 @@ export async function DELETE(req: Request) {
         success: false,
         message: "Terjadi kesalahan server",
       },
+      { status: 500 },
+    );
+  }
+}
+
+export async function PATCH(req: Request) {
+  try {
+    const result = await reviewInfografis(req);
+
+    return NextResponse.json(result, {
+      status: result.success ? 200 : 400,
+    });
+  } catch (error) {
+    return NextResponse.json(
+      { success: false, message: "Terjadi kesalahan internal" },
       { status: 500 },
     );
   }
