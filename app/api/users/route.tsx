@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { createUser, getUsers } from "@/utils/auth-services";
+import { createUser, getUsers, updateUser } from "@/utils/auth-services";
 
 export async function GET() {
   try {
@@ -16,6 +16,14 @@ export async function GET() {
 
 export async function POST(req: Request) {
   const result = await createUser(req);
+
+  return NextResponse.json(result, {
+    status: result.success ? 200 : 500,
+  });
+}
+
+export async function PUT(req: Request) {
+  const result = await updateUser(req);
 
   return NextResponse.json(result, {
     status: result.success ? 200 : 500,

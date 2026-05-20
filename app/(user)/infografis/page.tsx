@@ -42,7 +42,7 @@ export default function InfografisPage() {
     (item) => item.status === "disetujui",
   );
 
-  const categories = getUniqueCategories(dataInfografis);
+  const categories = getUniqueCategories(approvedData);
 
   const filteredData = filterData(approvedData, searchQuery, selectedCategory);
 
@@ -246,13 +246,13 @@ export default function InfografisPage() {
                 </button>
               </div>
             )}
-            <PreviewDialog
-              item={selectedItem}
-              onClose={() => setSelectedItem(null)}
-            />
           </>
         )}
       </div>
+      <PreviewDialog
+        item={selectedItem}
+        onClose={() => setSelectedItem(null)}
+      />
     </div>
   );
 }

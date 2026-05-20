@@ -1,5 +1,3 @@
-// hooks/use-auth.ts
-
 "use client";
 
 import { useEffect, useState } from "react";
@@ -10,18 +8,17 @@ export interface AuthUser {
   username: string;
   nama: string;
   role: "admin" | "mahasiswa";
+  status: "active" | "inactive";
 }
 
 // HOOK
 export function useAuth() {
   const [user, setUser] = useState<AuthUser | null>(null);
-
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     try {
       const storedUser = localStorage.getItem("user");
-
       if (storedUser) {
         setUser(JSON.parse(storedUser));
       }
@@ -32,10 +29,18 @@ export function useAuth() {
     }
   }, []);
 
+  // FUNGSI BARU: Untuk memperbarui data session tanpa harus login ulang
+  const updateUserSession = (updatedData: Partial<AuthUser>) => {
+    if (user) {
+      const newUser = { ...user, ...updatedData };
+      setUser(newUser); // Update UI seketika
+      localStorage.setItem("user", JSON.stringify(newUser)); // Update penyimpanan browser
+    }
+  };
+
   // LOGOUT
   const logout = () => {
     localStorage.removeItem("user");
-
     window.location.href = "/";
   };
 
@@ -43,5 +48,6 @@ export function useAuth() {
     user,
     loading,
     logout,
+    updateUserSession,
   };
 }

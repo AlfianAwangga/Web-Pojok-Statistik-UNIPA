@@ -1,10 +1,18 @@
 "use client";
 
+import AlertNotification from "@/components/ui/alert-notification";
+import ConfirmDialog from "@/components/ui/confirm-dialog";
 import { Column, DataTable } from "@/components/ui/data-table";
 import FormModal from "@/components/ui/form-modal";
-import { filterTableData, getUniqueCategories1 } from "@/utils/search";
-import { artikelData } from "@/data/dummies";
+import RevisiFormContent from "@/components/ui/form-revisi-content";
 import { ArtikelModel } from "@/data/artikel-model";
+import { useApproveDialog } from "@/hooks/use-approve-dialog";
+import { useAuth } from "@/hooks/use-auth";
+import { useDeleteDialog } from "@/hooks/use-delete-dialog";
+import { useFetch } from "@/hooks/use-fetch";
+import { useNotification } from "@/hooks/use-notification";
+import { useRevisiDialog } from "@/hooks/use-revisi-dialog";
+import { filterTableData } from "@/utils/search";
 import {
   CheckCircle,
   FileText,
@@ -16,17 +24,8 @@ import {
   Trash2,
   UploadCloud,
 } from "lucide-react";
-import { useMemo, useState } from "react";
-import { useFetch } from "@/hooks/use-fetch";
-import { useAuth } from "@/hooks/use-auth";
-import { useNotification } from "@/hooks/use-notification";
-import AlertNotification from "@/components/ui/alert-notification";
-import { useDeleteDialog } from "@/hooks/use-delete-dialog";
-import ConfirmDialog from "@/components/ui/confirm-dialog";
-import { useApproveDialog } from "@/hooks/use-approve-dialog";
-import { useRevisiDialog } from "@/hooks/use-revisi-dialog";
-import RevisiFormContent from "@/components/ui/form-revisi-content";
 import { useRouter } from "next/navigation";
+import { useMemo, useState } from "react";
 
 // INTERFACES
 interface ArticleSection {
@@ -462,7 +461,12 @@ export default function ArtikelAdmin() {
       const result = await response.json();
 
       if (result.success) {
-        showNotification("success", "Data berhasil ditambahkan");
+        showNotification(
+          "success",
+          editingData
+            ? "Artikel berhasil diperbarui"
+            : "Artikel berhasil ditambahkan",
+        );
         setIsModalOpen(false);
         resetForm();
         await refetch();
@@ -805,8 +809,8 @@ export default function ArtikelAdmin() {
       </FormModal>
       <ConfirmDialog
         isOpen={isDeleteOpen}
-        title="Hapus Infografis"
-        message={`Yakin ingin menghapus "${selectedDelete?.title}"?`}
+        title="Hapus Artikel"
+        message={`Yakin ingin menghapus artikel"${selectedDelete?.title}"?`}
         onCancel={closeDelete}
         onConfirm={confirmDelete}
         loading={deleting}
@@ -814,7 +818,7 @@ export default function ArtikelAdmin() {
       />
       <ConfirmDialog
         isOpen={isApproveOpen}
-        title="Setujui Infografis"
+        title="Setujui Artikel"
         message={`Setujui dan Publikasikan "${selectedApprove?.title}"?`}
         confirmText="Setujui"
         cancelText="Batal"

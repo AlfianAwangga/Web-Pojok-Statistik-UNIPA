@@ -37,8 +37,12 @@ export default function ArtikelPage() {
     error,
   } = useFetch<ArtikelModel>("/api/artikel");
 
-  const categories = getUniqueCategories(dataArtikel);
-  const filteredData = filterData(dataArtikel, searchQuery, selectedCategory);
+  const approvedData = dataArtikel.filter(
+    (item) => item.status === "disetujui",
+  );
+
+  const categories = getUniqueCategories(approvedData);
+  const filteredData = filterData(approvedData, searchQuery, selectedCategory);
 
   useEffect(() => {
     setCurrentPage(1);

@@ -16,13 +16,14 @@ import {
   LogOut,
 } from "lucide-react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/use-auth";
 
 export default function NavbarAdmin() {
   const { user, logout } = useAuth();
   const pathname = usePathname();
   const [isCollapsed, setIsCollapsed] = useState(false);
+  const router = useRouter();
 
   useEffect(() => {
     const handleResize = () => {
@@ -177,9 +178,13 @@ export default function NavbarAdmin() {
         )}
 
         <button
+          onClick={() => router.push("/admin/profil")}
           className={`
-            w-full flex items-center rounded-lg text-sm font-medium
-            hover:bg-purple-800 text-white transition-all
+            w-full flex items-center rounded-lg text-sm font-medium ${
+              pathname === "/admin/profil"
+                ? "bg-yellow-400 text-gray-700 shadow-md"
+                : "hover:bg-purple-800 text-white"
+            }
             ${isCollapsed ? "justify-center px-2 py-3" : "px-4 py-3 gap-3"}
           `}
         >

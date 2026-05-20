@@ -110,7 +110,7 @@ export function DataTable<T>({
                         >
                           <Eye className="w-4 h-4" />
                           <span className="hidden sm:inline text-xs font-medium">
-                            View
+                            Lihat
                           </span>
                         </button>
                       )}

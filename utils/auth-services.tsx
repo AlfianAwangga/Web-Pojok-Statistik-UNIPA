@@ -2,6 +2,7 @@ import { UserModel } from "@/data/user-model";
 import { auth } from "./google-auth";
 import { google } from "googleapis";
 import { saveToSheets } from "./google-sheets";
+import bcrypt from "bcryptjs";
 
 // GET ALL USERS
 export async function getUsers(): Promise<UserModel[]> {
@@ -81,6 +82,7 @@ export async function loginUser(username: string, password: string) {
         username: user.username,
         nama: user.nama,
         role: user.role,
+        status: user.status,
       },
     };
   } catch (error: any) {
@@ -132,6 +134,9 @@ export async function createUser(req: Request) {
     const lastId = await getUserLastId();
     const id = lastId + 1;
 
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(password, salt);
+
     // 1. Upload ke Drive (Cek status success-nya!)
     // const uploadResult = await uploadToDrive(file, folderId);
     // if (!uploadResult.success) {
@@ -148,7 +153,7 @@ export async function createUser(req: Request) {
     // 2. Simpan ke Sheets (Cek status success-nya juga!)
     const sheetResult = await saveToSheets({
       range: "user!A2:G",
-      values: [[id, username, password, nama, role, "", status]],
+      values: [[id, username, hashedPassword, nama, role, "", status]],
     });
 
     if (!sheetResult.success) {
@@ -164,7 +169,7 @@ export async function createUser(req: Request) {
       data: {
         id,
         username,
-        password,
+        password: hashedPassword,
         nama,
         role,
         bio: "",
@@ -181,5 +186,63 @@ export async function createUser(req: Request) {
           ? error.message
           : "Terjadi kesalahan internal server saat upload",
     };
+  }
+}
+
+export async function updateUser(req: Request) {
+  try {
+    const formData = await req.formData();
+    const id = formData.get("id") as string;
+    const username = formData.get("username") as string;
+    const password = formData.get("password") as string | null;
+    const nama = formData.get("nama") as string;
+    const role = formData.get("role") as string;
+    const status = formData.get("status") as string;
+
+    const spreadsheetId = process.env.SPREADSHEET_ID!;
+    const sheets = google.sheets({ version: "v4", auth });
+    const res = await sheets.spreadsheets.values.get({
+      spreadsheetId,
+      range: "user!A2:G", // Sesuaikan dengan range data User Anda
+    });
+
+    const rows = res.data.values || [];
+    const rowIndex = rows.findIndex((row) => String(row[0]) === String(id));
+
+    if (rowIndex === -1) throw new Error("User tidak ditemukan");
+
+    const oldRow = rows[rowIndex];
+
+    // TENTUKAN PASSWORD YANG AKAN DISIMPAN
+    let finalPassword = oldRow[2]; // Anggap kolom ke-3 (index 2) adalah password lama
+
+    // Jika admin memasukkan password baru di form, hash password barunya
+    if (password && password.trim() !== "") {
+      const salt = await bcrypt.genSalt(10);
+      finalPassword = await bcrypt.hash(password, salt);
+    }
+
+    const updatedRow = [
+      oldRow[0], // ID
+      username,
+      finalPassword, // Password Hash Baru / Hash Lama
+      nama,
+      role,
+      "",
+      status,
+    ];
+
+    const actualRow = rowIndex + 2;
+
+    await sheets.spreadsheets.values.update({
+      spreadsheetId,
+      range: `user!A${actualRow}:G${actualRow}`,
+      valueInputOption: "USER_ENTERED",
+      requestBody: { values: [updatedRow] },
+    });
+
+    return { success: true, message: "User berhasil diperbarui" };
+  } catch (error: any) {
+    return { success: false, message: error.message };
   }
 }

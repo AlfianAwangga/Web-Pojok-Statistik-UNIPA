@@ -143,7 +143,7 @@ export default function LoginPage() {
                 disabled={loading}
                 className="w-full rounded-xl bg-purple-800 px-4 py-3 text-sm font-bold text-white transition hover:bg-purple-700 disabled:opacity-50"
               >
-                {loading ? "Loading..." : "Masuk"}
+                {loading ? "Memuat Akun..." : "Masuk"}
               </button>
             </form>
           </div>
