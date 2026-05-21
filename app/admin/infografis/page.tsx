@@ -379,222 +379,227 @@ export default function InfografisAdmin() {
   }
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-300">
-      {/* HEADER DAN BUTTON TAMBAH */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h2 className="text-2xl font-bold text-slate-800">
-            Database Infografis
-          </h2>
-          <p className="text-sm text-slate-500">
-            Kelola karyamu dan pantau publikasi rekan-rekan magang lainnya.
-          </p>
-        </div>
-
-        <button
-          onClick={() => {
-            resetForm();
-            setIsModalOpen(true);
-          }}
-          className="flex items-center rounded-lg bg-purple-800 px-4 py-2.5 text-sm font-bold text-white shadow-sm transition hover:bg-purple-700"
-        >
-          <Plus className="mr-2 h-4 w-4" />
-          Unggah Karya Baru
-        </button>
-      </div>
-
-      {/* BAGIAN TABEL & PENCARIAN */}
-      <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm text-slate-900">
-        <div className="flex items-center justify-between border-b border-slate-100 bg-slate-50 p-4">
-          <div className="relative w-full max-w-xs">
-            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-            <input
-              type="text"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              placeholder="Cari karya..."
-              className="w-full rounded-lg border border-slate-200 py-2 pl-9 pr-4 text-sm outline-none transition focus:ring-2 focus:ring-purple-500"
-            />
-          </div>
-        </div>
-
-        <AlertNotification
-          show={showAlert}
-          message={alertMessage}
-          type={alertType}
-        />
-
-        {/* KOMPONEN TABEL */}
-        <div className="overflow-x-auto">
-          <DataTable
-            columns={kolomInfografis}
-            data={filteredData}
-            onView={(item) => setSelectedItem(item)}
-            onEdit={user?.role !== "admin" ? handleEdit : undefined}
-            onRevisi={user?.role === "admin" ? handleRevisi : undefined}
-            onApprove={user?.role === "admin" ? handleApprove : undefined}
-            onDelete={user?.role === "admin" ? handleDelete : undefined}
-            canAction={isAuthor}
-            withPagination={true}
-            itemsPerPage={ITEMS_PER_PAGES}
-          />
-        </div>
-      </div>
-      {/* FORM TAMBAH INFOGRAFIS */}
-      <FormModal
-        isOpen={isModalOpen}
-        onClose={() => {
-          setIsModalOpen(false);
-          resetForm();
-        }}
-        onSubmit={handleSubmit}
-        isSubmitting={uploading}
-        title={
-          editingData ? "Edit Karya Infografis" : "Unggah Karya Infografis"
-        }
-      >
-        <div className="space-y-5">
-          <div className="flex items-start rounded-lg border border-emerald-200 bg-emerald-50 p-4">
-            <CheckCircle className="mr-2 mt-0.5 h-5 w-5 shrink-0 text-emerald-500" />
-            <p className="text-xs leading-relaxed text-emerald-800">
-              Infografis yang kamu unggah di sini akan{" "}
-              <strong>langsung terpublikasi</strong>
-              &nbsp;ke halaman utama website publik Pojok Statistik.
+    <>
+      <title>Admin | Infografis</title>
+      <div className="space-y-6 animate-in fade-in duration-300">
+        {/* HEADER DAN BUTTON TAMBAH */}
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h2 className="text-2xl font-bold text-slate-800">
+              Database Infografis
+            </h2>
+            <p className="text-sm text-slate-500">
+              Kelola karyamu dan pantau publikasi rekan-rekan magang lainnya.
             </p>
           </div>
 
-          <div>
-            <label className="mb-1 block text-sm font-semibold text-slate-700">
-              Judul Karya Infografis
-            </label>
-            <input
-              type="text"
-              value={formData.title}
-              onChange={(e) => handleInputChange("title", e.target.value)}
-              placeholder="Contoh: Infografis Kemiskinan Ekstrem"
-              className="w-full rounded-lg border border-slate-200 px-4 py-2.5 outline-none transition focus:border-purple-500 focus:ring-2 focus:ring-purple-500 text-slate-700"
-            />
-          </div>
+          <button
+            onClick={() => {
+              resetForm();
+              setIsModalOpen(true);
+            }}
+            className="flex items-center rounded-lg bg-purple-800 px-4 py-2.5 text-sm font-bold text-white shadow-sm transition hover:bg-purple-700"
+          >
+            <Plus className="mr-2 h-4 w-4" />
+            Unggah Karya Baru
+          </button>
+        </div>
 
-          <div>
-            <label className="mb-1 block text-sm font-semibold text-slate-700">
-              Kategori Utama
-            </label>
-            {/* <select
-              value={formData.category}
-              onChange={(e) => handleInputChange("category", e.target.value)}
-              className="w-full rounded-lg border border-slate-200 px-4 py-2.5 outline-none focus:ring-2 focus:ring-purple-500 text-slate-700"
-            >
-              {categories.map((category) => (
-                <option key={category}>{category}</option>
-              ))}
-            </select> */}
-            <input
-              type="text"
-              value={formData.category}
-              onChange={(e) => handleInputChange("category", e.target.value)}
-              placeholder="Contoh: Kemiskinan, Pendidikan, ..."
-              className="w-full rounded-lg border border-slate-200 px-4 py-2.5 outline-none transition focus:border-purple-500 focus:ring-2 focus:ring-purple-500 text-slate-700"
-            />
-          </div>
-
-          <div>
-            <label className="mb-1 block text-sm font-semibold text-slate-700">
-              Deskripsi Infografis
-            </label>
-            <textarea
-              rows={4}
-              value={formData.description}
-              onChange={(e) => handleInputChange("description", e.target.value)}
-              placeholder="Ceritakan interpretasi dari infografis yang kamu buat..."
-              className="w-full resize-none rounded-lg border border-slate-200 px-4 py-2.5 outline-none focus:ring-2 focus:ring-purple-500 text-slate-700"
-            />
-          </div>
-
-          <div>
-            <label className="mb-1 block text-sm font-semibold text-slate-700">
-              Unggah File Infografis
-            </label>
-
-            <div
-              onClick={() => document.getElementById("fileInput")?.click()}
-              className="cursor-pointer rounded-xl border-2 border-dashed border-slate-300 p-2 text-center transition hover:bg-slate-50 h-56 flex items-center justify-center overflow-hidden"
-            >
-              {previewUrl ? (
-                <img
-                  src={previewUrl}
-                  alt="preview"
-                  onError={(e) => {
-                    console.log("Gagal load image");
-                    e.currentTarget.src = "/file.svg";
-                  }}
-                  className="h-full w-auto object-cover rounded-lg"
-                />
-              ) : (
-                <div className="flex flex-col items-center justify-center">
-                  <UploadCloud className="mb-3 h-10 w-10 text-slate-400" />
-                  <p className="text-sm font-medium text-slate-600">
-                    Seret file ke sini atau klik untuk mencari
-                  </p>
-                  <p className="mt-1 text-xs text-slate-400">
-                    PNG atau JPG, resolusi tinggi. Maks. 5MB
-                  </p>
-                </div>
-              )}
+        {/* BAGIAN TABEL & PENCARIAN */}
+        <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm text-slate-900">
+          <div className="flex items-center justify-between border-b border-slate-100 bg-slate-50 p-4">
+            <div className="relative w-full max-w-xs">
+              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+              <input
+                type="text"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                placeholder="Cari karya..."
+                className="w-full rounded-lg border border-slate-200 py-2 pl-9 pr-4 text-sm outline-none transition focus:ring-2 focus:ring-purple-500"
+              />
             </div>
+          </div>
 
-            {/* Sembunyikan Input saat gambar dipilih */}
-            <input
-              id="fileInput"
-              type="file"
-              accept="image/png, image/jpeg"
-              className="hidden"
-              onChange={(e) => {
-                if (e.target.files && e.target.files[0]) {
-                  handleFileChange(e.target.files[0]);
-                }
-              }}
+          <AlertNotification
+            show={showAlert}
+            message={alertMessage}
+            type={alertType}
+          />
+
+          {/* KOMPONEN TABEL */}
+          <div className="overflow-x-auto">
+            <DataTable
+              columns={kolomInfografis}
+              data={filteredData}
+              onView={(item) => setSelectedItem(item)}
+              onEdit={user?.role !== "admin" ? handleEdit : undefined}
+              onRevisi={user?.role === "admin" ? handleRevisi : undefined}
+              onApprove={user?.role === "admin" ? handleApprove : undefined}
+              onDelete={user?.role === "admin" ? handleDelete : undefined}
+              canAction={isAuthor}
+              withPagination={true}
+              itemsPerPage={ITEMS_PER_PAGES}
             />
           </div>
         </div>
-      </FormModal>
-      <FormModal
-        isOpen={isRevisiOpen}
-        onClose={closeRevisi}
-        onSubmit={submitRevisi}
-        isSubmitting={isRevising}
-        title="Berikan Catatan Revisi"
-      >
-        <RevisiFormContent
-          title={selectedRevisi?.title}
-          revisiMessage={revisiMessage}
-          setRevisiMessage={setRevisiMessage}
+        {/* FORM TAMBAH INFOGRAFIS */}
+        <FormModal
+          isOpen={isModalOpen}
+          onClose={() => {
+            setIsModalOpen(false);
+            resetForm();
+          }}
+          onSubmit={handleSubmit}
+          isSubmitting={uploading}
+          title={
+            editingData ? "Edit Karya Infografis" : "Unggah Karya Infografis"
+          }
+        >
+          <div className="space-y-5">
+            <div className="flex items-start rounded-lg border border-emerald-200 bg-emerald-50 p-4">
+              <CheckCircle className="mr-2 mt-0.5 h-5 w-5 shrink-0 text-emerald-500" />
+              <p className="text-xs leading-relaxed text-emerald-800">
+                Infografis yang kamu unggah di sini akan{" "}
+                <strong>langsung terpublikasi</strong>
+                &nbsp;ke halaman utama website publik Pojok Statistik.
+              </p>
+            </div>
+
+            <div>
+              <label className="mb-1 block text-sm font-semibold text-slate-700">
+                Judul Karya Infografis
+              </label>
+              <input
+                type="text"
+                value={formData.title}
+                onChange={(e) => handleInputChange("title", e.target.value)}
+                placeholder="Contoh: Infografis Kemiskinan Ekstrem"
+                className="w-full rounded-lg border border-slate-200 px-4 py-2.5 outline-none transition focus:border-purple-500 focus:ring-2 focus:ring-purple-500 text-slate-700"
+              />
+            </div>
+
+            <div>
+              <label className="mb-1 block text-sm font-semibold text-slate-700">
+                Kategori Utama
+              </label>
+              {/* <select
+      value={formData.category}
+      onChange={(e) => handleInputChange("category", e.target.value)}
+      className="w-full rounded-lg border border-slate-200 px-4 py-2.5 outline-none focus:ring-2 focus:ring-purple-500 text-slate-700"
+    >
+      {categories.map((category) => (
+        <option key={category}>{category}</option>
+      ))}
+    </select> */}
+              <input
+                type="text"
+                value={formData.category}
+                onChange={(e) => handleInputChange("category", e.target.value)}
+                placeholder="Contoh: Kemiskinan, Pendidikan, ..."
+                className="w-full rounded-lg border border-slate-200 px-4 py-2.5 outline-none transition focus:border-purple-500 focus:ring-2 focus:ring-purple-500 text-slate-700"
+              />
+            </div>
+
+            <div>
+              <label className="mb-1 block text-sm font-semibold text-slate-700">
+                Deskripsi Infografis
+              </label>
+              <textarea
+                rows={4}
+                value={formData.description}
+                onChange={(e) =>
+                  handleInputChange("description", e.target.value)
+                }
+                placeholder="Ceritakan interpretasi dari infografis yang kamu buat..."
+                className="w-full resize-none rounded-lg border border-slate-200 px-4 py-2.5 outline-none focus:ring-2 focus:ring-purple-500 text-slate-700"
+              />
+            </div>
+
+            <div>
+              <label className="mb-1 block text-sm font-semibold text-slate-700">
+                Unggah File Infografis
+              </label>
+
+              <div
+                onClick={() => document.getElementById("fileInput")?.click()}
+                className="cursor-pointer rounded-xl border-2 border-dashed border-slate-300 p-2 text-center transition hover:bg-slate-50 h-56 flex items-center justify-center overflow-hidden"
+              >
+                {previewUrl ? (
+                  <img
+                    src={previewUrl}
+                    alt="preview"
+                    onError={(e) => {
+                      console.log("Gagal load image");
+                      e.currentTarget.src = "/file.svg";
+                    }}
+                    className="h-full w-auto object-cover rounded-lg"
+                  />
+                ) : (
+                  <div className="flex flex-col items-center justify-center">
+                    <UploadCloud className="mb-3 h-10 w-10 text-slate-400" />
+                    <p className="text-sm font-medium text-slate-600">
+                      Seret file ke sini atau klik untuk mencari
+                    </p>
+                    <p className="mt-1 text-xs text-slate-400">
+                      PNG atau JPG, resolusi tinggi. Maks. 5MB
+                    </p>
+                  </div>
+                )}
+              </div>
+
+              {/* Sembunyikan Input saat gambar dipilih */}
+              <input
+                id="fileInput"
+                type="file"
+                accept="image/png, image/jpeg"
+                className="hidden"
+                onChange={(e) => {
+                  if (e.target.files && e.target.files[0]) {
+                    handleFileChange(e.target.files[0]);
+                  }
+                }}
+              />
+            </div>
+          </div>
+        </FormModal>
+        <FormModal
+          isOpen={isRevisiOpen}
+          onClose={closeRevisi}
+          onSubmit={submitRevisi}
+          isSubmitting={isRevising}
+          title="Berikan Catatan Revisi"
+        >
+          <RevisiFormContent
+            title={selectedRevisi?.title}
+            revisiMessage={revisiMessage}
+            setRevisiMessage={setRevisiMessage}
+          />
+        </FormModal>
+        <PreviewDialog
+          item={selectedItem}
+          onClose={() => setSelectedItem(null)}
         />
-      </FormModal>
-      <PreviewDialog
-        item={selectedItem}
-        onClose={() => setSelectedItem(null)}
-      />
-      <ConfirmDialog
-        isOpen={isDeleteOpen}
-        title="Hapus Infografis"
-        message={`Yakin ingin menghapus "${selectedDelete?.title}"?`}
-        onCancel={closeDelete}
-        onConfirm={confirmDelete}
-        loading={deleting}
-        variant="danger"
-      />
-      <ConfirmDialog
-        isOpen={isApproveOpen}
-        title="Setujui Infografis"
-        message={`Setujui dan Publikasikan "${selectedApprove?.title}"?`}
-        confirmText="Setujui"
-        cancelText="Batal"
-        loading={approving}
-        variant="success"
-        onCancel={closeApprove}
-        onConfirm={confirmApprove}
-      />
-    </div>
+        <ConfirmDialog
+          isOpen={isDeleteOpen}
+          title="Hapus Infografis"
+          message={`Yakin ingin menghapus "${selectedDelete?.title}"?`}
+          onCancel={closeDelete}
+          onConfirm={confirmDelete}
+          loading={deleting}
+          variant="danger"
+        />
+        <ConfirmDialog
+          isOpen={isApproveOpen}
+          title="Setujui Infografis"
+          message={`Setujui dan Publikasikan "${selectedApprove?.title}"?`}
+          confirmText="Setujui"
+          cancelText="Batal"
+          loading={approving}
+          variant="success"
+          onCancel={closeApprove}
+          onConfirm={confirmApprove}
+        />
+      </div>
+    </>
   );
 }

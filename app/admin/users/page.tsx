@@ -175,156 +175,159 @@ export default function UserAdmin() {
   if (error) return <div className="text-red-500">Error: {error}</div>;
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-300">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h2 className="text-2xl font-bold text-slate-800">Database User</h2>
-          <p className="text-sm text-slate-500">
-            Kelola akun admin dan mahasiswa.
-          </p>
-        </div>
-        <button
-          onClick={() => {
-            resetForm();
-            setIsModalOpen(true);
-          }}
-          className="flex items-center rounded-lg bg-purple-800 px-4 py-2.5 text-sm font-bold text-white shadow-sm transition hover:bg-purple-700"
-        >
-          <Plus className="mr-2 h-4 w-4" /> Tambah User
-        </button>
-      </div>
-
-      <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm text-slate-900">
-        <div className="flex items-center justify-between border-b border-slate-100 bg-slate-50 p-4">
-          <div className="relative w-full max-w-xs">
-            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-            <input
-              type="text"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              placeholder="Cari user..."
-              className="w-full rounded-lg border border-slate-200 py-2 pl-9 pr-4 text-sm outline-none transition focus:ring-2 focus:ring-purple-500"
-            />
+    <>
+      <title>Admin | Pengguna</title>
+      <div className="space-y-6 animate-in fade-in duration-300">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h2 className="text-2xl font-bold text-slate-800">Database User</h2>
+            <p className="text-sm text-slate-500">
+              Kelola akun admin dan mahasiswa.
+            </p>
           </div>
+          <button
+            onClick={() => {
+              resetForm();
+              setIsModalOpen(true);
+            }}
+            className="flex items-center rounded-lg bg-purple-800 px-4 py-2.5 text-sm font-bold text-white shadow-sm transition hover:bg-purple-700"
+          >
+            <Plus className="mr-2 h-4 w-4" /> Tambah User
+          </button>
         </div>
 
-        <AlertNotification
-          show={showAlert}
-          message={alertMessage}
-          type={alertType}
-        />
-
-        <div className="overflow-x-auto">
-          <DataTable
-            columns={kolomUsers}
-            data={filteredData}
-            onEdit={handleEdit}
-            onDelete={handleDelete}
-            canAction={isAuthor}
-            withPagination={true}
-            itemsPerPage={ITEMS_PER_PAGES}
-          />
-        </div>
-      </div>
-
-      <FormModal
-        isOpen={isModalOpen}
-        onClose={() => {
-          setIsModalOpen(false);
-          resetForm();
-        }}
-        onSubmit={handleSubmit}
-        title={editingData ? "Edit User" : "Tambah User"}
-        isSubmitting={submitting}
-      >
-        <div className="space-y-5">
-          {!editingData && (
-            <div className="flex items-start rounded-lg border border-emerald-200 bg-emerald-50 p-4">
-              <CheckCircle className="mr-2 mt-0.5 h-5 w-5 shrink-0 text-emerald-500" />
-              <p className="text-xs leading-relaxed text-emerald-800">
-                User yang ditambahkan akan langsung dapat login ke dashboard
-                sistem.
-              </p>
+        <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm text-slate-900">
+          <div className="flex items-center justify-between border-b border-slate-100 bg-slate-50 p-4">
+            <div className="relative w-full max-w-xs">
+              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+              <input
+                type="text"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                placeholder="Cari user..."
+                className="w-full rounded-lg border border-slate-200 py-2 pl-9 pr-4 text-sm outline-none transition focus:ring-2 focus:ring-purple-500"
+              />
             </div>
-          )}
+          </div>
 
-          <div>
-            <label className="mb-1 block text-sm font-semibold text-slate-700">
-              Nama Lengkap
-            </label>
-            <input
-              type="text"
-              value={formData.nama}
-              onChange={(e) => handleInputChange("nama", e.target.value)}
-              placeholder="Masukkan nama lengkap"
-              className="w-full rounded-lg border border-slate-200 px-4 py-2.5 outline-none focus:ring-2 focus:ring-purple-500 text-slate-700"
+          <AlertNotification
+            show={showAlert}
+            message={alertMessage}
+            type={alertType}
+          />
+
+          <div className="overflow-x-auto">
+            <DataTable
+              columns={kolomUsers}
+              data={filteredData}
+              onEdit={handleEdit}
+              onDelete={handleDelete}
+              canAction={isAuthor}
+              withPagination={true}
+              itemsPerPage={ITEMS_PER_PAGES}
             />
-          </div>
-
-          <div>
-            <label className="mb-1 block text-sm font-semibold text-slate-700">
-              Username
-            </label>
-            <input
-              type="text"
-              value={formData.username}
-              onChange={(e) => handleInputChange("username", e.target.value)}
-              placeholder="Masukkan username"
-              className="w-full rounded-lg border border-slate-200 px-4 py-2.5 outline-none focus:ring-2 focus:ring-purple-500 text-slate-700"
-            />
-          </div>
-
-          <div>
-            <label className="mb-1 block text-sm font-semibold text-slate-700">
-              Password
-            </label>
-            <input
-              type="password"
-              value={formData.password}
-              onChange={(e) => handleInputChange("password", e.target.value)}
-              placeholder={
-                editingData
-                  ? "Kosongkan jika tidak diubah"
-                  : "Masukkan password"
-              }
-              className="w-full rounded-lg border border-slate-200 px-4 py-2.5 outline-none focus:ring-2 focus:ring-purple-500 text-slate-700"
-            />
-            {editingData && (
-              <p className="mt-1 text-xs text-slate-500">
-                * Kosongkan field ini jika tidak ingin mengubah password.
-              </p>
-            )}
-          </div>
-
-          <div>
-            <label className="mb-1 block text-sm font-semibold text-slate-700">
-              Role User
-            </label>
-            <select
-              value={formData.role}
-              onChange={(e) => handleInputChange("role", e.target.value)}
-              className="w-full rounded-lg border border-slate-200 px-4 py-2.5 outline-none focus:ring-2 focus:ring-purple-500 text-slate-700"
-            >
-              <option value="mahasiswa">Mahasiswa</option>
-              <option value="admin">Admin</option>
-            </select>
-          </div>
-
-          <div>
-            <label className="mb-1 block text-sm font-semibold text-slate-700">
-              Status Akun
-            </label>
-            <select
-              value={formData.status}
-              onChange={(e) => handleInputChange("status", e.target.value)}
-              className="w-full rounded-lg border border-slate-200 px-4 py-2.5 outline-none focus:ring-2 focus:ring-purple-500 text-slate-700"
-            >
-              <option value="active">Active</option>
-              <option value="inactive">Inactive</option>
-            </select>
           </div>
         </div>
-      </FormModal>
-    </div>
+
+        <FormModal
+          isOpen={isModalOpen}
+          onClose={() => {
+            setIsModalOpen(false);
+            resetForm();
+          }}
+          onSubmit={handleSubmit}
+          title={editingData ? "Edit User" : "Tambah User"}
+          isSubmitting={submitting}
+        >
+          <div className="space-y-5">
+            {!editingData && (
+              <div className="flex items-start rounded-lg border border-emerald-200 bg-emerald-50 p-4">
+                <CheckCircle className="mr-2 mt-0.5 h-5 w-5 shrink-0 text-emerald-500" />
+                <p className="text-xs leading-relaxed text-emerald-800">
+                  User yang ditambahkan akan langsung dapat login ke dashboard
+                  sistem.
+                </p>
+              </div>
+            )}
+
+            <div>
+              <label className="mb-1 block text-sm font-semibold text-slate-700">
+                Nama Lengkap
+              </label>
+              <input
+                type="text"
+                value={formData.nama}
+                onChange={(e) => handleInputChange("nama", e.target.value)}
+                placeholder="Masukkan nama lengkap"
+                className="w-full rounded-lg border border-slate-200 px-4 py-2.5 outline-none focus:ring-2 focus:ring-purple-500 text-slate-700"
+              />
+            </div>
+
+            <div>
+              <label className="mb-1 block text-sm font-semibold text-slate-700">
+                Username
+              </label>
+              <input
+                type="text"
+                value={formData.username}
+                onChange={(e) => handleInputChange("username", e.target.value)}
+                placeholder="Masukkan username"
+                className="w-full rounded-lg border border-slate-200 px-4 py-2.5 outline-none focus:ring-2 focus:ring-purple-500 text-slate-700"
+              />
+            </div>
+
+            <div>
+              <label className="mb-1 block text-sm font-semibold text-slate-700">
+                Password
+              </label>
+              <input
+                type="password"
+                value={formData.password}
+                onChange={(e) => handleInputChange("password", e.target.value)}
+                placeholder={
+                  editingData
+                    ? "Kosongkan jika tidak diubah"
+                    : "Masukkan password"
+                }
+                className="w-full rounded-lg border border-slate-200 px-4 py-2.5 outline-none focus:ring-2 focus:ring-purple-500 text-slate-700"
+              />
+              {editingData && (
+                <p className="mt-1 text-xs text-slate-500">
+                  * Kosongkan field ini jika tidak ingin mengubah password.
+                </p>
+              )}
+            </div>
+
+            <div>
+              <label className="mb-1 block text-sm font-semibold text-slate-700">
+                Role User
+              </label>
+              <select
+                value={formData.role}
+                onChange={(e) => handleInputChange("role", e.target.value)}
+                className="w-full rounded-lg border border-slate-200 px-4 py-2.5 outline-none focus:ring-2 focus:ring-purple-500 text-slate-700"
+              >
+                <option value="mahasiswa">Mahasiswa</option>
+                <option value="admin">Admin</option>
+              </select>
+            </div>
+
+            <div>
+              <label className="mb-1 block text-sm font-semibold text-slate-700">
+                Status Akun
+              </label>
+              <select
+                value={formData.status}
+                onChange={(e) => handleInputChange("status", e.target.value)}
+                className="w-full rounded-lg border border-slate-200 px-4 py-2.5 outline-none focus:ring-2 focus:ring-purple-500 text-slate-700"
+              >
+                <option value="active">Active</option>
+                <option value="inactive">Inactive</option>
+              </select>
+            </div>
+          </div>
+        </FormModal>
+      </div>
+    </>
   );
 }
