@@ -4,20 +4,15 @@ import { Column, DataTable } from "@/components/ui/data-table";
 import FormModal from "@/components/ui/form-modal";
 import { filterTableData } from "@/utils/search";
 import { useFetch } from "@/hooks/use-fetch";
-import { CheckCircle, Plus, Search, User } from "lucide-react";
+import { Plus, Search } from "lucide-react";
 import { useMemo, useState } from "react";
 import { UserModel } from "@/data/user-model";
 import { useAuth } from "@/hooks/use-auth";
 import { useNotification } from "@/hooks/use-notification";
 import AlertNotification from "@/components/ui/alert-notification";
 
-interface FormData {
-  username: string;
-  password?: string; // Buat opsional untuk mode edit
-  nama: string;
-  role: "admin" | "mahasiswa";
-  status: "active" | "inactive";
-}
+// 1. IMPORT KOMPONEN FORM
+import FormUser, { UserFormData } from "@/components/ui/form-user";
 
 export default function UserAdmin() {
   const { user } = useAuth();
@@ -29,7 +24,7 @@ export default function UserAdmin() {
     data: dataUsers,
     isLoading,
     error,
-    refetch, // Pastikan refetch diambil untuk refresh data tanpa reload page
+    refetch,
   } = useFetch<UserModel>("/api/users");
 
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -37,7 +32,10 @@ export default function UserAdmin() {
   const [submitting, setSubmitting] = useState(false);
   const [editingData, setEditingData] = useState<UserModel | null>(null);
 
-  const [formData, setFormData] = useState<FormData>({
+  // 2. STATE ERROR MODAL
+  const [modalError, setModalError] = useState("");
+
+  const [formData, setFormData] = useState<UserFormData>({
     username: "",
     password: "",
     nama: "",
@@ -79,7 +77,7 @@ export default function UserAdmin() {
     return filterTableData(dataUsers, searchTerm, ["nama", "username", "role"]);
   }, [dataUsers, searchTerm]);
 
-  const handleInputChange = (field: keyof FormData, value: string) => {
+  const handleInputChange = (field: keyof UserFormData, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
@@ -92,13 +90,14 @@ export default function UserAdmin() {
       role: "mahasiswa",
       status: "active",
     });
+    setModalError(""); // Reset error saat form ditutup
   };
 
   const handleEdit = (item: UserModel) => {
     setEditingData(item);
     setFormData({
       username: item.username,
-      password: "", // Selalu kosongkan password saat edit alasan keamanan
+      password: "",
       nama: item.nama,
       role: item.role as "admin" | "mahasiswa",
       status: item.status as "active" | "inactive",
@@ -112,9 +111,16 @@ export default function UserAdmin() {
   };
 
   const handleSubmit = async () => {
-    // Validasi: Password wajib diisi jika buat user baru
-    if (!editingData && !formData.password) {
-      alert("Password wajib diisi untuk pengguna baru!");
+    setModalError(""); // Bersihkan error sebelum cek ulang
+
+    // 3. VALIDASI FORM USER
+    if (!formData.nama.trim() || !formData.username.trim()) {
+      setModalError("Mohon lengkapi Nama Lengkap dan Username!");
+      return;
+    }
+
+    if (!editingData && !(formData.password || "").trim()) {
+      setModalError("Password wajib diisi untuk pengguna baru!");
       return;
     }
 
@@ -128,14 +134,11 @@ export default function UserAdmin() {
       formDataUpload.append("role", formData.role);
       formDataUpload.append("status", formData.status);
 
-      // Kirim password hanya jika diisi
       if (formData.password) {
         formDataUpload.append("password", formData.password);
       }
 
-      // Gunakan PUT jika edit, POST jika tambah
       const method = editingData ? "PUT" : "POST";
-
       const response = await fetch("/api/users", {
         method,
         body: formDataUpload,
@@ -144,6 +147,7 @@ export default function UserAdmin() {
       const result = await response.json();
 
       if (result.success) {
+        // Tampilkan success via notification luar karena modal tertutup
         showNotification(
           "success",
           editingData
@@ -152,13 +156,13 @@ export default function UserAdmin() {
         );
         setIsModalOpen(false);
         resetForm();
-        if (refetch) refetch(); // Refresh tabel
+        if (refetch) refetch();
       } else {
-        showNotification("error", result.message);
+        setModalError(result.message || "Gagal menyimpan data user");
       }
     } catch (error) {
       console.error(error);
-      showNotification("error", "terjadi kesalahan");
+      setModalError("Terjadi kesalahan sistem.");
     } finally {
       setSubmitting(false);
     }
@@ -229,6 +233,7 @@ export default function UserAdmin() {
           </div>
         </div>
 
+        {/* 4. MODAL FORM MEMANGGIL KOMPONEN FORM USER */}
         <FormModal
           isOpen={isModalOpen}
           onClose={() => {
@@ -239,93 +244,13 @@ export default function UserAdmin() {
           title={editingData ? "Edit User" : "Tambah User"}
           isSubmitting={submitting}
         >
-          <div className="space-y-5">
-            {!editingData && (
-              <div className="flex items-start rounded-lg border border-emerald-200 bg-emerald-50 p-4">
-                <CheckCircle className="mr-2 mt-0.5 h-5 w-5 shrink-0 text-emerald-500" />
-                <p className="text-xs leading-relaxed text-emerald-800">
-                  User yang ditambahkan akan langsung dapat login ke dashboard
-                  sistem.
-                </p>
-              </div>
-            )}
-
-            <div>
-              <label className="mb-1 block text-sm font-semibold text-slate-700">
-                Nama Lengkap
-              </label>
-              <input
-                type="text"
-                value={formData.nama}
-                onChange={(e) => handleInputChange("nama", e.target.value)}
-                placeholder="Masukkan nama lengkap"
-                className="w-full rounded-lg border border-slate-200 px-4 py-2.5 outline-none focus:ring-2 focus:ring-purple-500 text-slate-700"
-              />
-            </div>
-
-            <div>
-              <label className="mb-1 block text-sm font-semibold text-slate-700">
-                Username
-              </label>
-              <input
-                type="text"
-                value={formData.username}
-                onChange={(e) => handleInputChange("username", e.target.value)}
-                placeholder="Masukkan username"
-                className="w-full rounded-lg border border-slate-200 px-4 py-2.5 outline-none focus:ring-2 focus:ring-purple-500 text-slate-700"
-              />
-            </div>
-
-            <div>
-              <label className="mb-1 block text-sm font-semibold text-slate-700">
-                Password
-              </label>
-              <input
-                type="password"
-                value={formData.password}
-                onChange={(e) => handleInputChange("password", e.target.value)}
-                placeholder={
-                  editingData
-                    ? "Kosongkan jika tidak diubah"
-                    : "Masukkan password"
-                }
-                className="w-full rounded-lg border border-slate-200 px-4 py-2.5 outline-none focus:ring-2 focus:ring-purple-500 text-slate-700"
-              />
-              {editingData && (
-                <p className="mt-1 text-xs text-slate-500">
-                  * Kosongkan field ini jika tidak ingin mengubah password.
-                </p>
-              )}
-            </div>
-
-            <div>
-              <label className="mb-1 block text-sm font-semibold text-slate-700">
-                Role User
-              </label>
-              <select
-                value={formData.role}
-                onChange={(e) => handleInputChange("role", e.target.value)}
-                className="w-full rounded-lg border border-slate-200 px-4 py-2.5 outline-none focus:ring-2 focus:ring-purple-500 text-slate-700"
-              >
-                <option value="mahasiswa">Mahasiswa</option>
-                <option value="admin">Admin</option>
-              </select>
-            </div>
-
-            <div>
-              <label className="mb-1 block text-sm font-semibold text-slate-700">
-                Status Akun
-              </label>
-              <select
-                value={formData.status}
-                onChange={(e) => handleInputChange("status", e.target.value)}
-                className="w-full rounded-lg border border-slate-200 px-4 py-2.5 outline-none focus:ring-2 focus:ring-purple-500 text-slate-700"
-              >
-                <option value="active">Active</option>
-                <option value="inactive">Inactive</option>
-              </select>
-            </div>
-          </div>
+          <FormUser
+            formData={formData}
+            onChange={handleInputChange}
+            isEditing={!!editingData}
+            errorMessage={modalError}
+            setErrorMessage={setModalError}
+          />
         </FormModal>
       </div>
     </>

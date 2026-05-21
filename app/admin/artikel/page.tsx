@@ -3,6 +3,7 @@
 import AlertNotification from "@/components/ui/alert-notification";
 import ConfirmDialog from "@/components/ui/confirm-dialog";
 import { Column, DataTable } from "@/components/ui/data-table";
+import FormArtikel, { ArtikelFormData } from "@/components/ui/form-artikel";
 import FormModal from "@/components/ui/form-modal";
 import RevisiFormContent from "@/components/ui/form-revisi-content";
 import { ArtikelModel } from "@/data/artikel-model";
@@ -13,38 +14,11 @@ import { useFetch } from "@/hooks/use-fetch";
 import { useNotification } from "@/hooks/use-notification";
 import { useRevisiDialog } from "@/hooks/use-revisi-dialog";
 import { filterTableData } from "@/utils/search";
-import {
-  CheckCircle,
-  FileText,
-  Info,
-  Plus,
-  Search,
-  Star,
-  Tag,
-  Trash2,
-  UploadCloud,
-} from "lucide-react";
+import { Info, Plus, Search } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 
-// INTERFACES
-interface ArticleSection {
-  id: number;
-  type: "subtitle" | "paragraph" | "highlight" | "quote";
-  content: string;
-}
-
-interface FormData {
-  title: string;
-  category: string;
-  excerpt: string;
-  tags: string;
-  status: "menunggu" | "disetujui" | "revisi";
-  sections: ArticleSection[];
-}
-
 export default function ArtikelAdmin() {
-  // KONFIGURASI
   const { user } = useAuth();
   const { showAlert, alertType, alertMessage, showNotification } =
     useNotification();
@@ -72,11 +46,11 @@ export default function ArtikelAdmin() {
     closeRevisi,
     setSubmitting: setIsRevising,
   } = useRevisiDialog<ArtikelModel>();
+
   const [revisiMessage, setRevisiMessage] = useState("");
-  const ITEMS_PER_PAGES = 10; // Konfigurasi jumlah data per halaman pagination
+  const ITEMS_PER_PAGES = 10;
   const router = useRouter();
 
-  // Ambil data dari API Route
   const {
     data: dataArtikel,
     isLoading,
@@ -84,34 +58,21 @@ export default function ArtikelAdmin() {
     refetch,
   } = useFetch<ArtikelModel>("/api/artikel");
 
-  // STATES
-  // States untuk UI
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
 
-  // State untuk Upload File/Gambar
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
-
-  // Mengambil daftar kategori unik dari data dummy untuk dropdown form
-  // const categories = getUniqueCategories1(dataArtikel);
-
-  // State untuk form artikel
   const [editingData, setEditingData] = useState<ArtikelModel | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [formData, setFormData] = useState<FormData>({
+  const [modalError, setModalError] = useState("");
+  const [formData, setFormData] = useState<ArtikelFormData>({
     title: "",
     category: "",
     excerpt: "",
     tags: "",
     status: "menunggu",
-    sections: [
-      {
-        id: 1,
-        type: "paragraph",
-        content: "",
-      },
-    ],
+    sections: [{ id: 1, type: "paragraph", content: "" }],
   });
 
   // KONFIGURASI TABEL
@@ -257,6 +218,7 @@ export default function ArtikelAdmin() {
     setSelectedFile(null);
     setPreviewUrl(null);
     setEditingData(null);
+    setModalError("");
   };
 
   const handleOpenArticle = (slug: string) => {
@@ -264,7 +226,7 @@ export default function ArtikelAdmin() {
   };
 
   const handleInputChange = (
-    field: keyof FormData,
+    field: keyof ArtikelFormData,
     value: string | boolean,
   ) => {
     setFormData((prev) => ({
@@ -409,15 +371,32 @@ export default function ArtikelAdmin() {
     } catch (error) {
       showNotification("error", "Terjadi kesalahan server.");
     } finally {
-      setApproving(false); // Matikan loading
-      closeApprove(); // Tutup dialog
+      setApproving(false);
+      closeApprove();
     }
   };
 
   const handleSubmit = async () => {
     // 1. Validasi Dasar
-    if (!formData.title.trim()) {
-      alert("Judul artikel wajib diisi!");
+    if (
+      !formData.title.trim() ||
+      !formData.category.trim() ||
+      !formData.excerpt.trim() ||
+      !formData.tags.trim()
+    ) {
+      setModalError("Mohon lengkapi semua kolom Informasi Utama dan Metadata!");
+      return;
+    }
+
+    if (formData.sections.some((sec) => !sec.content.trim())) {
+      setModalError(
+        "Isi konten pada semua Section Builder tidak boleh kosong!",
+      );
+      return;
+    }
+
+    if (!selectedFile && !editingData) {
+      setModalError("Pilih gambar Thumbnail Artikel terlebih dahulu!");
       return;
     }
 
@@ -575,228 +554,17 @@ export default function ArtikelAdmin() {
             editingData ? "Edit Artikel Statistik" : "Tambah Artikel Statistik"
           }
         >
-          <div className="space-y-6">
-            <div className="flex items-start rounded-lg border border-emerald-200 bg-emerald-50 p-4">
-              <CheckCircle className="mr-2 mt-0.5 h-5 w-5 shrink-0 text-emerald-500" />
-              <p className="text-xs leading-relaxed text-emerald-800">
-                Artikel yang dipublikasikan akan langsung tampil pada halaman
-                publik Pojok Statistik.
-              </p>
-            </div>
-
-            {/* Informasi Utama */}
-            <div className="space-y-4 rounded-xl border border-slate-200 p-5">
-              <h3 className="font-bold text-slate-800">Informasi Utama</h3>
-
-              <div>
-                <label className="mb-1 block text-sm font-semibold text-slate-700">
-                  Judul Artikel
-                </label>
-                <input
-                  type="text"
-                  value={formData.title}
-                  onChange={(e) => handleInputChange("title", e.target.value)}
-                  placeholder="Masukkan judul artikel"
-                  className="w-full rounded-lg border border-slate-200 px-4 py-2.5 outline-none focus:ring-2 focus:ring-purple-500 text-slate-700"
-                />
-              </div>
-
-              <div>
-                <label className="mb-1 block text-sm font-semibold text-slate-700">
-                  Kategori
-                </label>
-                <input
-                  type="text"
-                  value={formData.category}
-                  onChange={(e) =>
-                    handleInputChange("category", e.target.value)
-                  }
-                  placeholder="Contoh: Kemiskinan, Pendidikan, ..."
-                  className="w-full rounded-lg border border-slate-200 px-4 py-2.5 outline-none focus:ring-2 focus:ring-purple-500 text-slate-700"
-                />
-                {/* <select
-      value={formData.category}
-      onChange={(e) => handleInputChange("category", e.target.value)}
-      className="w-full rounded-lg border border-slate-200 px-4 py-2.5 outline-none focus:ring-2 focus:ring-purple-500 text-slate-700"
-    >
-      {categories.map((category) => (
-        <option key={category}>{category}</option>
-      ))}
-    </select> */}
-              </div>
-
-              <div>
-                <label className="mb-1 block text-sm font-semibold text-slate-700">
-                  Ringkasan Artikel
-                </label>
-                <textarea
-                  rows={4}
-                  value={formData.excerpt}
-                  onChange={(e) => handleInputChange("excerpt", e.target.value)}
-                  placeholder="Ringkasan singkat artikel"
-                  className="w-full resize-none rounded-lg border border-slate-200 px-4 py-2.5 outline-none focus:ring-2 focus:ring-purple-500 text-slate-700"
-                />
-              </div>
-            </div>
-
-            {/* Metadata */}
-            <div className="space-y-4 rounded-xl border border-slate-200 p-5">
-              <h3 className="font-bold text-slate-800">Metadata Artikel</h3>
-
-              <div>
-                <label className="mb-1 flex items-center gap-2 text-sm font-semibold text-slate-700">
-                  <Tag className="h-4 w-4" /> Tags
-                </label>
-                <input
-                  type="text"
-                  value={formData.tags}
-                  onChange={(e) => handleInputChange("tags", e.target.value)}
-                  placeholder="Contoh: inflasi, ekonomi, papua"
-                  className="w-full rounded-lg border border-slate-200 px-4 py-2.5 outline-none focus:ring-2 focus:ring-purple-500 text-slate-700"
-                />
-              </div>
-
-              <div>
-                <label className="mb-1 block text-sm font-semibold text-slate-700">
-                  Unggah Thumbnail
-                </label>
-
-                <div
-                  onClick={() => document.getElementById("fileInput")?.click()}
-                  className="cursor-pointer rounded-xl border-2 border-dashed border-slate-300 p-2 text-center transition hover:bg-slate-50 h-56 flex items-center justify-center overflow-hidden"
-                >
-                  {previewUrl ? (
-                    <img
-                      src={previewUrl}
-                      alt="preview"
-                      className="h-full w-auto object-cover rounded-lg"
-                    />
-                  ) : (
-                    <div className="flex flex-col items-center justify-center">
-                      <UploadCloud className="mb-3 h-10 w-10 text-slate-400" />
-                      <p className="text-sm font-medium text-slate-600">
-                        Seret file ke sini atau klik untuk mencari
-                      </p>
-                      <p className="mt-1 text-xs text-slate-400">
-                        PNG atau JPG, resolusi tinggi. Maks. 5MB
-                      </p>
-                    </div>
-                  )}
-                </div>
-
-                {/* Sembunyikan Input saat gambar dipilih */}
-                <input
-                  id="fileInput"
-                  type="file"
-                  accept="image/png, image/jpeg"
-                  className="hidden"
-                  onChange={(e) => {
-                    if (e.target.files && e.target.files[0]) {
-                      handleFileChange(e.target.files[0]);
-                    }
-                  }}
-                />
-              </div>
-
-              <div className="flex items-center justify-between rounded-lg border border-slate-200 p-4">
-                <div>
-                  <p className="font-semibold text-slate-700">
-                    Jadikan Sebagai Draft
-                  </p>
-                  <p className="text-sm text-slate-500">
-                    Kamu bisa mengeditnya lagi nanti
-                  </p>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => handleInputChange("status", !formData.status)}
-                  className={`rounded-lg px-4 py-2 text-sm font-semibold ${
-                    formData.status
-                      ? "bg-yellow-100 text-yellow-700"
-                      : "bg-slate-100 text-slate-500"
-                  }`}
-                >
-                  <Star className="inline h-4 w-4 mr-1" />
-                  {formData.status ? "Aktif" : "Nonaktif"}
-                </button>
-              </div>
-            </div>
-
-            {/* Builder */}
-            <div className="space-y-4 rounded-xl border border-slate-200 p-5">
-              <h3 className="font-bold text-slate-800">
-                Article Section Builder
-              </h3>
-              <p className="text-sm text-slate-500">
-                Tambahkan subtitle, paragraf, highlight, quote, atau gambar
-                untuk membangun isi artikel secara dinamis.
-              </p>
-
-              <div className="space-y-4">
-                {formData.sections.map((section, index) => (
-                  <div
-                    key={section.id}
-                    className="rounded-xl border border-slate-200 p-4 space-y-3"
-                  >
-                    <div className="flex items-center justify-between gap-3">
-                      <p className="text-sm font-semibold text-slate-700">
-                        Section #{index + 1}
-                      </p>
-
-                      <button
-                        type="button"
-                        onClick={() => removeSection(section.id)}
-                        className="rounded-md p-2 text-red-500 transition hover:bg-red-50"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </button>
-                    </div>
-
-                    <div>
-                      <label className="mb-1 block text-sm font-medium text-slate-700">
-                        Tipe Section
-                      </label>
-                      <select
-                        value={section.type}
-                        onChange={(e) =>
-                          updateSection(section.id, "type", e.target.value)
-                        }
-                        className="w-full rounded-lg border border-slate-200 px-4 py-2.5 outline-none focus:ring-2 focus:ring-purple-500 text-slate-700"
-                      >
-                        <option value="paragraph">Paragraph</option>
-                        <option value="subtitle">Subtitle</option>
-                        <option value="highlight">Highlight Box</option>
-                        <option value="quote">Quote</option>
-                      </select>
-                    </div>
-
-                    <div>
-                      <label className="mb-1 block text-sm font-medium text-slate-700">
-                        Isi Konten
-                      </label>
-                      <textarea
-                        rows={4}
-                        value={section.content}
-                        onChange={(e) =>
-                          updateSection(section.id, "content", e.target.value)
-                        }
-                        placeholder="Tulis isi section di sini..."
-                        className="w-full resize-none rounded-lg border border-slate-200 px-4 py-2.5 outline-none focus:ring-2 focus:ring-purple-500 text-slate-700"
-                      />
-                    </div>
-                  </div>
-                ))}
-
-                <button
-                  type="button"
-                  onClick={addSection}
-                  className="flex items-center rounded-lg border border-dashed border-purple-300 px-4 py-3 text-sm font-semibold text-purple-700 hover:bg-purple-50"
-                >
-                  <FileText className="mr-2 h-4 w-4" />+ Tambah Section
-                </button>
-              </div>
-            </div>
-          </div>
+          <FormArtikel
+            formData={formData}
+            onChange={handleInputChange}
+            previewUrl={previewUrl}
+            onFileChange={handleFileChange}
+            errorMessage={modalError}
+            setErrorMessage={setModalError}
+            addSection={addSection}
+            updateSection={updateSection}
+            removeSection={removeSection}
+          />
         </FormModal>
         <FormModal
           isOpen={isRevisiOpen}

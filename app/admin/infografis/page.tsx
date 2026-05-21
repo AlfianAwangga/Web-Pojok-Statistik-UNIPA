@@ -5,7 +5,7 @@ import FormModal from "@/components/ui/form-modal";
 import { filterTableData, getUniqueCategories1 } from "@/utils/search";
 import { InfografisModel } from "@/data/infografis-model";
 import { useFetch } from "@/hooks/use-fetch";
-import { CheckCircle, Plus, Search, UploadCloud, Info } from "lucide-react";
+import { Plus, Search, Info } from "lucide-react";
 import { useMemo, useState } from "react";
 import { useAuth } from "@/hooks/use-auth";
 import AlertNotification from "@/components/ui/alert-notification";
@@ -17,15 +17,12 @@ import { useRevisiDialog } from "@/hooks/use-revisi-dialog";
 import RevisiFormContent from "@/components/ui/form-revisi-content";
 import PreviewDialog from "@/components/ui/preview-dialog";
 
-// INTERFACES
-interface FormData {
-  title: string;
-  category: string;
-  description: string;
-}
+// 1. IMPORT KOMPONEN BARU
+import FormInfografis, {
+  InfografisFormData,
+} from "@/components/ui/form-infografis";
 
 export default function InfografisAdmin() {
-  // KONFIGURASI
   const { user } = useAuth();
   const { showAlert, alertType, alertMessage, showNotification } =
     useNotification();
@@ -53,10 +50,10 @@ export default function InfografisAdmin() {
     closeRevisi,
     setSubmitting: setIsRevising,
   } = useRevisiDialog<InfografisModel>();
-  const [revisiMessage, setRevisiMessage] = useState("");
-  const ITEMS_PER_PAGES = 10; // Konfigurasi jumlah data per halaman pagination
 
-  // Ambil data dari API Route
+  const [revisiMessage, setRevisiMessage] = useState("");
+  const ITEMS_PER_PAGES = 10;
+
   const {
     data: dataInfografis,
     isLoading,
@@ -64,35 +61,28 @@ export default function InfografisAdmin() {
     refetch,
   } = useFetch<InfografisModel>("/api/infografis");
 
-  // STATES
-  // States untuk UI
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedItem, setSelectedItem] = useState<InfografisModel | null>(
     null,
   );
 
-  // State untuk Upload File/Gambar
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
+  const [modalError, setModalError] = useState("");
 
-  const categories = getUniqueCategories1(dataInfografis);
-
-  // State untuk Data Form
-  const [formData, setFormData] = useState<FormData>({
+  // 2. STATE FORM DATA MENGGUNAKAN INTERFACE DARI KOMPONEN BARU
+  const [formData, setFormData] = useState<InfografisFormData>({
     title: "",
     category: "",
     description: "",
   });
   const [editingData, setEditingData] = useState<InfografisModel | null>(null);
 
-  // KONFIGURASI TABEL
-  // cek itemnya milik user atau bukan
   const isAuthor = (item: InfografisModel) =>
     item.author === user?.nama || user?.role === "admin";
 
-  // Struktur kolom untuk komponen DataTable
   const kolomInfografis: Column<any>[] = [
     {
       header: "Judul Infografis",
@@ -113,7 +103,7 @@ export default function InfografisAdmin() {
             isAuthor(item) ? "text-purple-600 font-semibold" : "text-gray-600"
           }
         >
-          {item.author} {isAuthor(item)}
+          {item.author}
         </span>
       ),
     },
@@ -137,8 +127,6 @@ export default function InfografisAdmin() {
                 <span className="leading-relaxed whitespace-pre-wrap">
                   {item.revisi_msg || "Tidak ada catatan."}
                 </span>
-
-                {/* Segitiga kecil panah bawah */}
                 <div className="absolute -bottom-1 left-1/2 h-3 w-3 -translate-x-1/2 rotate-45 bg-slate-800"></div>
               </div>
             </div>
@@ -146,11 +134,7 @@ export default function InfografisAdmin() {
         }
         return (
           <span
-            className={`rounded-full px-3 py-1 text-xs font-semibold ${
-              item.status === "menunggu"
-                ? "bg-blue-100 text-blue-700"
-                : "bg-emerald-100 text-emerald-700"
-            }`}
+            className={`rounded-full px-3 py-1 text-xs font-semibold ${item.status === "menunggu" ? "bg-blue-100 text-blue-700" : "bg-emerald-100 text-emerald-700"}`}
           >
             {item.status.charAt(0).toUpperCase() + item.status.slice(1)}
           </span>
@@ -159,7 +143,6 @@ export default function InfografisAdmin() {
     },
   ];
 
-  // Data tabel yang sudah difilter
   const filteredData = useMemo(() => {
     return filterTableData(dataInfografis, searchTerm, [
       "title",
@@ -168,14 +151,8 @@ export default function InfografisAdmin() {
     ]);
   }, [dataInfografis, searchTerm]);
 
-  // EVENT HANDLERS
   const resetForm = () => {
-    setFormData({
-      title: "",
-      category: "",
-      description: "",
-    });
-
+    setFormData({ title: "", category: "", description: "" });
     setSelectedFile(null);
     setPreviewUrl(null);
     setEditingData(null);
@@ -183,19 +160,17 @@ export default function InfografisAdmin() {
 
   const handleEdit = (item: InfografisModel) => {
     setEditingData(item);
-
     setFormData({
       title: item.title,
       category: item.category,
       description: item.description,
     });
-
     setPreviewUrl(item.image_url);
-
     setIsModalOpen(true);
   };
 
   const handleDelete = (item: InfografisModel) => openDelete(item);
+
   const confirmDelete = async () => {
     if (!selectedDelete) return;
 
@@ -226,13 +201,10 @@ export default function InfografisAdmin() {
     }
   };
 
-  // Handler untuk membuka modal dan menyiapkan isi pesan jika sebelumnya sudah ada
   const handleRevisi = (item: InfografisModel) => {
     setRevisiMessage(item.revisi_msg || "");
     openRevisi(item);
   };
-
-  // Handler saat admin menekan tombol submit pada modal revisi
   const submitRevisi = async () => {
     if (!selectedRevisi || !revisiMessage.trim()) return;
 
@@ -244,7 +216,6 @@ export default function InfografisAdmin() {
       formData.append("status", "revisi");
       formData.append("revisi_msg", revisiMessage);
 
-      // Pastikan endpoint API ini sesuai dengan struktur Anda (PATCH ke review handler)
       const res = await fetch("/api/infografis", {
         method: "PATCH",
         body: formData,
@@ -254,7 +225,7 @@ export default function InfografisAdmin() {
 
       if (result.success) {
         showNotification("success", "Catatan revisi berhasil dikirim!");
-        await refetch(); // Segarkan tabel
+        await refetch();
       } else {
         showNotification("error", result.message);
       }
@@ -271,7 +242,7 @@ export default function InfografisAdmin() {
     if (!selectedApprove) return;
 
     try {
-      setApproving(true); // Memutar loading state di tombol dialog
+      setApproving(true);
 
       const formData = new FormData();
       formData.append("id", String(selectedApprove.id));
@@ -299,33 +270,36 @@ export default function InfografisAdmin() {
     }
   };
 
-  const handleInputChange = (field: keyof FormData, value: string) => {
-    setFormData((prev) => ({
-      ...prev,
-      [field]: value,
-    }));
+  const handleInputChange = (
+    field: keyof InfografisFormData,
+    value: string,
+  ) => {
+    setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
   const handleFileChange = (file: File) => {
     setSelectedFile(file);
-    const preview = URL.createObjectURL(file);
-    setPreviewUrl(preview);
+    setPreviewUrl(URL.createObjectURL(file));
   };
 
   const handleSubmit = async () => {
-    // validasi file hanya saat create
-    if (!selectedFile && !editingData) {
-      showNotification("error", "Pilih file dulu!");
+    // 3. VALIDASI FORM KOSONG
+    if (
+      !formData.title.trim() ||
+      !formData.category.trim() ||
+      !formData.description.trim()
+    ) {
+      setModalError("Mohon lengkapi semua kolom form!");
+      return;
+    }
 
+    if (!selectedFile && !editingData) {
+      setModalError("Pilih file infografis terlebih dahulu!");
       return;
     }
 
     const formDataUpload = new FormData();
-
-    // append file hanya jika ada
-    if (selectedFile) {
-      formDataUpload.append("file", selectedFile);
-    }
+    if (selectedFile) formDataUpload.append("file", selectedFile);
     formDataUpload.append("title", formData.title);
     formDataUpload.append("category", formData.category);
     formDataUpload.append("author", user!.nama);
@@ -334,14 +308,14 @@ export default function InfografisAdmin() {
     try {
       setUploading(true);
       const method = editingData ? "PUT" : "POST";
-      if (editingData) {
-        formDataUpload.append("id", editingData.id.toString());
-      }
+      if (editingData) formDataUpload.append("id", editingData.id.toString());
+
       const res = await fetch("/api/infografis", {
         method,
         body: formDataUpload,
       });
       const result = await res.json();
+
       if (result.success) {
         showNotification(
           "success",
@@ -356,33 +330,25 @@ export default function InfografisAdmin() {
         showNotification("error", result.message || "Gagal menyimpan data");
       }
     } catch (error) {
-      console.error(error);
-
-      showNotification("error", "Terjadi kesalahan");
+      showNotification("error", "Terjadi kesalahan sistem");
     } finally {
       setUploading(false);
     }
   };
 
-  // Tampilkan efek loading saat data sedang diambil
-  if (isLoading) {
+  if (isLoading)
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-800"></div>
       </div>
     );
-  }
-
-  // Tampilkan efek jika error
-  if (error) {
-    return <div className="text-red-500">Error: {error}</div>;
-  }
+  if (error) return <div className="text-red-500">Error: {error}</div>;
 
   return (
     <>
       <title>Admin | Infografis</title>
       <div className="space-y-6 animate-in fade-in duration-300">
-        {/* HEADER DAN BUTTON TAMBAH */}
+        {/* HEADER */}
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <h2 className="text-2xl font-bold text-slate-800">
@@ -392,7 +358,6 @@ export default function InfografisAdmin() {
               Kelola karyamu dan pantau publikasi rekan-rekan magang lainnya.
             </p>
           </div>
-
           <button
             onClick={() => {
               resetForm();
@@ -400,12 +365,11 @@ export default function InfografisAdmin() {
             }}
             className="flex items-center rounded-lg bg-purple-800 px-4 py-2.5 text-sm font-bold text-white shadow-sm transition hover:bg-purple-700"
           >
-            <Plus className="mr-2 h-4 w-4" />
-            Unggah Karya Baru
+            <Plus className="mr-2 h-4 w-4" /> Unggah Karya Baru
           </button>
         </div>
 
-        {/* BAGIAN TABEL & PENCARIAN */}
+        {/* TABEL */}
         <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm text-slate-900">
           <div className="flex items-center justify-between border-b border-slate-100 bg-slate-50 p-4">
             <div className="relative w-full max-w-xs">
@@ -426,7 +390,6 @@ export default function InfografisAdmin() {
             type={alertType}
           />
 
-          {/* KOMPONEN TABEL */}
           <div className="overflow-x-auto">
             <DataTable
               columns={kolomInfografis}
@@ -442,7 +405,6 @@ export default function InfografisAdmin() {
             />
           </div>
         </div>
-        {/* FORM TAMBAH INFOGRAFIS */}
         <FormModal
           isOpen={isModalOpen}
           onClose={() => {
@@ -455,113 +417,16 @@ export default function InfografisAdmin() {
             editingData ? "Edit Karya Infografis" : "Unggah Karya Infografis"
           }
         >
-          <div className="space-y-5">
-            <div className="flex items-start rounded-lg border border-emerald-200 bg-emerald-50 p-4">
-              <CheckCircle className="mr-2 mt-0.5 h-5 w-5 shrink-0 text-emerald-500" />
-              <p className="text-xs leading-relaxed text-emerald-800">
-                Infografis yang kamu unggah di sini akan{" "}
-                <strong>langsung terpublikasi</strong>
-                &nbsp;ke halaman utama website publik Pojok Statistik.
-              </p>
-            </div>
-
-            <div>
-              <label className="mb-1 block text-sm font-semibold text-slate-700">
-                Judul Karya Infografis
-              </label>
-              <input
-                type="text"
-                value={formData.title}
-                onChange={(e) => handleInputChange("title", e.target.value)}
-                placeholder="Contoh: Infografis Kemiskinan Ekstrem"
-                className="w-full rounded-lg border border-slate-200 px-4 py-2.5 outline-none transition focus:border-purple-500 focus:ring-2 focus:ring-purple-500 text-slate-700"
-              />
-            </div>
-
-            <div>
-              <label className="mb-1 block text-sm font-semibold text-slate-700">
-                Kategori Utama
-              </label>
-              {/* <select
-      value={formData.category}
-      onChange={(e) => handleInputChange("category", e.target.value)}
-      className="w-full rounded-lg border border-slate-200 px-4 py-2.5 outline-none focus:ring-2 focus:ring-purple-500 text-slate-700"
-    >
-      {categories.map((category) => (
-        <option key={category}>{category}</option>
-      ))}
-    </select> */}
-              <input
-                type="text"
-                value={formData.category}
-                onChange={(e) => handleInputChange("category", e.target.value)}
-                placeholder="Contoh: Kemiskinan, Pendidikan, ..."
-                className="w-full rounded-lg border border-slate-200 px-4 py-2.5 outline-none transition focus:border-purple-500 focus:ring-2 focus:ring-purple-500 text-slate-700"
-              />
-            </div>
-
-            <div>
-              <label className="mb-1 block text-sm font-semibold text-slate-700">
-                Deskripsi Infografis
-              </label>
-              <textarea
-                rows={4}
-                value={formData.description}
-                onChange={(e) =>
-                  handleInputChange("description", e.target.value)
-                }
-                placeholder="Ceritakan interpretasi dari infografis yang kamu buat..."
-                className="w-full resize-none rounded-lg border border-slate-200 px-4 py-2.5 outline-none focus:ring-2 focus:ring-purple-500 text-slate-700"
-              />
-            </div>
-
-            <div>
-              <label className="mb-1 block text-sm font-semibold text-slate-700">
-                Unggah File Infografis
-              </label>
-
-              <div
-                onClick={() => document.getElementById("fileInput")?.click()}
-                className="cursor-pointer rounded-xl border-2 border-dashed border-slate-300 p-2 text-center transition hover:bg-slate-50 h-56 flex items-center justify-center overflow-hidden"
-              >
-                {previewUrl ? (
-                  <img
-                    src={previewUrl}
-                    alt="preview"
-                    onError={(e) => {
-                      console.log("Gagal load image");
-                      e.currentTarget.src = "/file.svg";
-                    }}
-                    className="h-full w-auto object-cover rounded-lg"
-                  />
-                ) : (
-                  <div className="flex flex-col items-center justify-center">
-                    <UploadCloud className="mb-3 h-10 w-10 text-slate-400" />
-                    <p className="text-sm font-medium text-slate-600">
-                      Seret file ke sini atau klik untuk mencari
-                    </p>
-                    <p className="mt-1 text-xs text-slate-400">
-                      PNG atau JPG, resolusi tinggi. Maks. 5MB
-                    </p>
-                  </div>
-                )}
-              </div>
-
-              {/* Sembunyikan Input saat gambar dipilih */}
-              <input
-                id="fileInput"
-                type="file"
-                accept="image/png, image/jpeg"
-                className="hidden"
-                onChange={(e) => {
-                  if (e.target.files && e.target.files[0]) {
-                    handleFileChange(e.target.files[0]);
-                  }
-                }}
-              />
-            </div>
-          </div>
+          <FormInfografis
+            formData={formData}
+            onChange={handleInputChange}
+            previewUrl={previewUrl}
+            onFileChange={handleFileChange}
+            errorMessage={modalError}
+            setErrorMessage={setModalError}
+          />
         </FormModal>
+
         <FormModal
           isOpen={isRevisiOpen}
           onClose={closeRevisi}
@@ -575,6 +440,7 @@ export default function InfografisAdmin() {
             setRevisiMessage={setRevisiMessage}
           />
         </FormModal>
+
         <PreviewDialog
           item={selectedItem}
           onClose={() => setSelectedItem(null)}
