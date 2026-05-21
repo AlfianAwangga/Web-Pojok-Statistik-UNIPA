@@ -13,16 +13,17 @@ import {
 } from "@/utils/dashboard-services";
 import {
   AlertTriangle,
-  BookAIcon,
+  BarChart2,
   BookOpen,
   CheckCircle,
+  CheckCircle2,
+  Clock,
+  FileEdit,
   FileText,
   Globe,
   ImageIcon,
   ImagesIcon,
   PieChart,
-  PlayCircle,
-  PlaySquare,
   User,
   Users,
   Users2,
@@ -39,22 +40,18 @@ export default function AdminDashboardPage() {
   const myInfografisCount = getMyInfografisCount(dataInfografis, user?.nama);
   const myArtikelCount = getMyArtikelCount(dataArtikel, user?.nama);
   const myPhotoCount = getMyPhotoCount(dataFoto, user?.nama);
-  const myVideoCount = 0;
 
-  const totalInfografis = dataInfografis.length;
-  const totalArtikel = dataArtikel.length;
-  const totalPhoto = dataFoto.length;
-  const totalVideo = 3;
-  const totalUsers = dataUsers.length;
+  const totalInfografis = dataInfografis?.length || 0;
+  const totalArtikel = dataArtikel?.length || 0;
+  const totalPhoto = dataFoto?.length || 0;
+  const totalUsers = dataUsers?.length || 0;
 
-  // --- LOGIKA FILTER NOTIFIKASI REVISI ---
-  // Cari infografis milik user yang statusnya "revisi"
+  // --- LOGIKA FILTER NOTIFIKASI REVISI (Tindakan Diperlukan) ---
   const revisiInfografis =
     dataInfografis?.filter(
       (item) => item.author === user?.nama && (item as any).status === "revisi",
     ) || [];
 
-  // Cari artikel milik user yang statusnya "revisi"
   const revisiArtikel =
     dataArtikel?.filter(
       (item) => item.author === user?.nama && item.status === "revisi",
@@ -62,43 +59,31 @@ export default function AdminDashboardPage() {
 
   const hasRevisi = revisiInfografis.length > 0 || revisiArtikel.length > 0;
 
+  // --- LOGIKA STATISTIK STATUS PUBLIKASI KESELURUHAN KARYA ---
+  const totalMenunggu =
+    (dataInfografis?.filter((i) => i.status === "menunggu").length || 0) +
+    (dataArtikel?.filter((a) => a.status === "menunggu").length || 0);
+
+  const totalRevisiStatus =
+    (dataInfografis?.filter((i) => i.status === "revisi").length || 0) +
+    (dataArtikel?.filter((a) => a.status === "revisi").length || 0);
+
+  const totalDisetujui =
+    (dataInfografis?.filter((i) => i.status === "disetujui").length || 0) +
+    (dataArtikel?.filter((a) => a.status === "disetujui").length || 0);
+
   const overallStatItems = [
-    {
-      name: "Total Infografis",
-      count: totalInfografis,
-      icon: PieChart,
-    },
-    {
-      name: "Total Artikel",
-      count: totalArtikel,
-      icon: FileText,
-    },
-    {
-      name: "Total Foto",
-      count: totalPhoto,
-      icon: ImagesIcon,
-    },
-    {
-      name: "Total Videografis",
-      count: totalVideo,
-      icon: PlaySquare,
-    },
-    {
-      name: "Kompilasi Diunggah",
-      count: 0,
-      icon: BookAIcon,
-    },
-    {
-      name: "Jumlah Pengguna",
-      count: totalUsers,
-      icon: Users2,
-    },
+    { name: "Total Infografis", count: totalInfografis, icon: PieChart },
+    { name: "Total Artikel", count: totalArtikel, icon: FileText },
+    { name: "Total Foto", count: totalPhoto, icon: ImagesIcon },
+    { name: "Jumlah Pengguna", count: totalUsers, icon: Users2 },
   ];
 
   return (
     <>
       <title>Admin | Dashboard</title>
       <div className="space-y-6">
+        {/* Banner Welcome */}
         <div className="bg-purple-800 rounded-2xl p-4 md:p-8 text-white shadow-lg relative overflow-hidden">
           <div className="relative z-10">
             <h2 className="text-2xl md:text-3xl font-bold mb-2">
@@ -113,7 +98,7 @@ export default function AdminDashboardPage() {
           <Globe className="absolute -right-4 -bottom-8 w-48 h-48 text-white opacity-10" />
         </div>
 
-        {/* KOTAK PENGUMUMAN REVISI (Hanya Muncul Jika Ada Revisi) */}
+        {/* KOTAK PENGUMUMAN REVISI */}
         {hasRevisi && (
           <div className="bg-white rounded-xl shadow-sm border border-amber-300 p-6 animate-in fade-in slide-in-from-top-4 duration-500">
             <h3 className="text-lg font-bold text-amber-600 mb-4 flex items-center gap-2">
@@ -122,7 +107,6 @@ export default function AdminDashboardPage() {
             </h3>
 
             <div className="space-y-4">
-              {/* TAMPILKAN DAFTAR INFOGRAFIS YANG DIREVISI */}
               {revisiInfografis.map((item) => (
                 <div
                   key={`info-${item.id}`}
@@ -148,7 +132,6 @@ export default function AdminDashboardPage() {
                 </div>
               ))}
 
-              {/* TAMPILKAN DAFTAR ARTIKEL YANG DIREVISI */}
               {revisiArtikel.map((item) => (
                 <div
                   key={`art-${item.id}`}
@@ -177,6 +160,7 @@ export default function AdminDashboardPage() {
           </div>
         )}
 
+        {/* HASIL KARYAMU */}
         <div>
           <h3 className="text-lg font-bold text-slate-800 mb-4 flex items-center">
             <User className="w-5 h-5 mr-2 text-blue-600" /> Hasil Karyamu
@@ -185,7 +169,7 @@ export default function AdminDashboardPage() {
             <div className="bg-white p-6 rounded-2xl border-l-4 border-sky-600 shadow-sm flex items-center justify-between">
               <div>
                 <p className="text-slate-500 font-medium text-sm mb-1">
-                  Infografis
+                  Infografis Diunggah
                 </p>
                 <h4 className="text-3xl font-extrabold text-slate-800">
                   {myInfografisCount}
@@ -198,7 +182,7 @@ export default function AdminDashboardPage() {
             <div className="bg-white p-6 rounded-2xl border-l-4 border-emerald-500 shadow-sm flex items-center justify-between">
               <div>
                 <p className="text-slate-500 font-medium text-sm mb-1">
-                  Artikel
+                  Artikel Diunggah
                 </p>
                 <h4 className="text-3xl font-extrabold text-slate-800">
                   {myArtikelCount}
@@ -211,7 +195,7 @@ export default function AdminDashboardPage() {
             <div className="bg-white p-6 rounded-2xl border-l-4 border-amber-500 shadow-sm flex items-center justify-between">
               <div>
                 <p className="text-slate-500 font-medium text-sm mb-1">
-                  Foto / Dokumentasi
+                  Foto Diunggah
                 </p>
                 <h4 className="text-3xl font-extrabold text-slate-800">
                   {myPhotoCount}
@@ -221,68 +205,90 @@ export default function AdminDashboardPage() {
                 <ImageIcon className="hidden sm:block sm:size-8 sm:text-amber-500" />
               </div>
             </div>
-            <div className="bg-white p-6 rounded-2xl border-l-4 border-violet-500 shadow-sm flex items-center justify-between">
+          </div>
+        </div>
+
+        {/* STATISTIK STATUS PUBLIKASI */}
+        <div>
+          <h3 className="text-lg font-bold text-slate-800 mb-4 flex items-center">
+            <BarChart2 className="w-5 h-5 mr-2 text-blue-600" /> Status
+            Publikasi Keseluruhan
+          </h3>
+          <div className="grid grid-cols-1 sm:grid-cols-4 gap-6 pb-6">
+            {/* Menunggu Card */}
+            <div className="bg-white p-6 rounded-2xl border-l-4 border-blue-500 shadow-sm flex items-center justify-between">
               <div>
                 <p className="text-slate-500 font-medium text-sm mb-1">
-                  Videografis
+                  Menunggu Persetujuan
                 </p>
                 <h4 className="text-3xl font-extrabold text-slate-800">
-                  {myVideoCount}
+                  {totalMenunggu}
                 </h4>
               </div>
-              <div className="sm:bg-violet-50 p-3 rounded-xl">
-                <PlayCircle className="hidden sm:block sm:size-8 sm:text-violet-500" />
+              <div className="bg-blue-50 p-3 rounded-xl">
+                <Clock className="size-8 text-blue-500" />
               </div>
             </div>
-          </div>
-
-          <div>
-            <h3 className="text-lg font-bold text-slate-800 mb-4 flex items-center">
-              <Users className="w-5 h-5 mr-2 text-blue-600" /> Statistik
-              Keseluruhan Web
-            </h3>
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-6">
-              {overallStatItems.map((item) => {
-                const Icon = item.icon;
-                return (
-                  <div
-                    key={item.name}
-                    className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between"
-                  >
-                    <div>
-                      <p className="text-slate-500 font-medium text-sm mb-1">
-                        {item.name}
-                      </p>
-                      <h4 className="text-3xl font-extrabold text-slate-800">
-                        {item.count}
-                      </h4>
-                    </div>
-                    <div className="sm:bg-blue-50 p-3 rounded-xl">
-                      <Icon className="hidden sm:block sm:size-7 sm:text-blue-500" />
-                    </div>
-                  </div>
-                );
-              })}
+            {/* Revisi Card */}
+            <div className="bg-white p-6 rounded-2xl border-l-4 border-yellow-500 shadow-sm flex items-center justify-between">
+              <div>
+                <p className="text-slate-500 font-medium text-sm mb-1">
+                  Butuh Revisi
+                </p>
+                <h4 className="text-3xl font-extrabold text-slate-800">
+                  {totalRevisiStatus}
+                </h4>
+              </div>
+              <div className="bg-yellow-50 p-3 rounded-xl">
+                <FileEdit className="size-8 text-yellow-600" />
+              </div>
+            </div>
+            {/* Disetujui Card */}
+            <div className="bg-white p-6 rounded-2xl border-l-4 border-emerald-500 shadow-sm flex items-center justify-between">
+              <div>
+                <p className="text-slate-500 font-medium text-sm mb-1">
+                  Berhasil Disetujui
+                </p>
+                <h4 className="text-3xl font-extrabold text-slate-800">
+                  {totalDisetujui}
+                </h4>
+              </div>
+              <div className="bg-emerald-50 p-3 rounded-xl">
+                <CheckCircle2 className="size-8 text-emerald-500" />
+              </div>
             </div>
           </div>
         </div>
 
-        {/* KOTAK PENGUMUMAN */}
-        {/* <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-      <h3 className="text-lg font-bold text-slate-800 mb-4">
-        Pengumuman Pembimbing
-      </h3>
-      <div className="bg-blue-50 border-l-4 border-blue-500 p-4 rounded-r-lg">
-        <p className="text-sm text-blue-900 font-medium">
-          Batas akhir pengumpulan artikel kajian individu (Tugas Akhir Magang)
-          adalah tanggal 30 April 2026. Harap pastikan setiap anggota tim
-          sudah mengunggah karya masing-masing ke dalam database ini.
-        </p>
-        <p className="text-xs text-blue-700 mt-2">
-          — Bapak Yan (Kasi Statistik Sosial BPS)
-        </p>
-      </div>
-    </div> */}
+        {/* STATISTIK KESELURUHAN WEB */}
+        <div>
+          <h3 className="text-lg font-bold text-slate-800 mb-4 flex items-center">
+            <Users className="w-5 h-5 mr-2 text-blue-600" /> Total Konten Web
+          </h3>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+            {overallStatItems.map((item) => {
+              const Icon = item.icon;
+              return (
+                <div
+                  key={item.name}
+                  className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between"
+                >
+                  <div>
+                    <p className="text-slate-500 font-medium text-sm mb-1">
+                      {item.name}
+                    </p>
+                    <h4 className="text-3xl font-extrabold text-slate-800">
+                      {item.count}
+                    </h4>
+                  </div>
+                  <div className="sm:bg-blue-50 p-3 rounded-xl">
+                    <Icon className="hidden sm:block sm:size-7 sm:text-blue-500" />
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
       </div>
     </>
   );
